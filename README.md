@@ -1,7 +1,20 @@
 # 百度网盘直接下载助手 直链加速版
-
+![TamperMonkey v4.5](https://img.shields.io/badge/TamperMonkey-v4.5-brightgreen.svg)
+![Chrome x64 v60.4](https://img.shields.io/badge/Chrome%20x64-v60.4-brightgreen.svg)
+![Safari v11.0.3](https://img.shields.io/badge/Safari%20-v11.0.3-brightgreen.svg)
 ### 安装地址
 [百度网盘直接下载助手 直链加速版](https://greasyfork.org/zh-CN/scripts/39504-%E7%99%BE%E5%BA%A6%E7%BD%91%E7%9B%98%E7%9B%B4%E6%8E%A5%E4%B8%8B%E8%BD%BD%E5%8A%A9%E6%89%8B-%E7%9B%B4%E9%93%BE%E5%8A%A0%E9%80%9F%E7%89%88)
+### 更新日志:
+
+**2018-03-23** : v1.1 修复外链无法显示的问题
+
+**2018-03-15** : v1.0 替换外链下载高速通道
+
+### 插件功能
+- 解除大文件下载限制
+- 支持文件夹下载
+- 支持多文件下载
+- 支持批量复制下载链接
 
 ### 使用必读
 
@@ -32,8 +45,3 @@ Tips: 被列入百度黑名单的用户, 退出账号后获取链接即可达到
 - 3：使用百度网盘客户端获取下载链接的方法，得到的是一组不同服务器的下载地址，这些地址可以复制使用，无需cookie
         下载时默认使用第一个地址下载
 
-### 更新日志:
-
-**2018-03-15** : v1.0 替换外链下载高速通道
-
-**2018-03-23** : v1.1 修复外链无法显示的问题
