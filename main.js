@@ -28,6 +28,7 @@
         'list-switch': 'lrbo9a',
         'grid-switch': 'xh6poL',
         'checkbox': 'EOGexf',  //ok
+        'chekbox-grid': 'cEefyz',
         'col-item': 'Qxyfvg',
         'check': 'fydGNC',
         'checked': 'EzubGg',
@@ -53,6 +54,7 @@
         'col-item': 'Qxyfvg',
         'check': 'fydGNC',
         'checked': 'EzubGg',
+        'chekbox-grid': 'cEefyz',
         'list-view': 'vdAfKMb',
         'item-active': 'xrmQgr8',
         'grid-view': 'JKvHJMb',
@@ -134,7 +136,7 @@
             currentPage = getCurrentPage();
             slog('Current display mode:', currentPage);
 
-            if (currentPage == 'list')
+            if (currentPage == 'all')
                 currentPath = getPath();
 
             if (currentPage == 'category')
@@ -168,9 +170,11 @@
 
         //获取当前的视图模式
         function getListGridStatus() {
-            //return $('div.list-grid-switch').hasClass('list-switched-on')?'list':($('div.list-grid-switch').hasClass('grid-switched-on')?'grid':'list');
-            //return $('div.itiWzPY').hasClass('kudtWY46')?'list':($('div.itiWzPY').hasClass('nytAL9w')?'grid':'list');
-            return $('div.' + wordMap['list-grid-switch']).hasClass(wordMap['list-switched-on']) ? 'list' : ($('div.' + wordMap['list-grid-switch']).hasClass(wordMap['grid-switched-on']) ? 'grid' : 'list');
+            if ($('.grid-switched-on').length > 0) {
+                return 'grid'
+            } else {
+                return 'list'
+            }
         }
 
         function registerEventListener() {
@@ -185,6 +189,7 @@
         function registerHashChange() {
             window.addEventListener('hashchange', function (e) {
                 refreshListGridStatus();
+
                 if (getCurrentPage() == 'all') {
                     if (currentPage == getCurrentPage()) {
                         if (currentPath == getPath()) {
@@ -238,16 +243,12 @@
 
         //监视视图变化
         function registerListGridStatus() {
-            //var $a_list = $('a[node-type=list-switch]');
-            //var $a_list = $('a[node-type=eepWzkk]');
-            var $a_list = $('a[node-type=' + wordMap['list-switch'] + ']');
+            var $a_list = $('a[data-type=list]');
             $a_list.click(function () {
                 list_grid_status = 'list';
             });
 
-            //var $a_grid = $('a[node-type=grid-switch]');
-            //var $a_grid = $('a[node-type=ytnvWY7q]');
-            var $a_grid = $('a[node-type=' + wordMap['grid-switch'] + ']');
+            var $a_grid = $('a[data-type=grid]');
             $a_grid.click(function () {
                 list_grid_status = 'grid';
             });
@@ -255,19 +256,21 @@
 
         //文件选择框
         function registerCheckbox() {
-            //var $checkbox = $('span.checkbox');
-            //var $checkbox = $('span.EOGexf');
-            var $checkbox = $('span.' + wordMap['checkbox']);
+            if (list_grid_status == 'list') {
+                var $checkbox = $('span.' + wordMap['checkbox']);
+            } else if (list_grid_status == 'grid') {
+                var $checkbox = $('.' + wordMap['chekbox-grid']);
+            }
+
+            //console.log($checkbox);
             $checkbox.each(function (index, element) {
                 $(element).bind('click', function (e) {
                     var $parent = $(this).parent();
                     var filename;
+
                     if (list_grid_status == 'list') {
-                        //filename = $('div.file-name div.text a',$parent).attr('title');
                         filename = $('div.file-name div.text a', $parent).attr('title');
-                        //console.log(list_grid_status);
                     } else if (list_grid_status == 'grid') {
-                        //filename = $('div.file-name a',$parent).attr('title');
                         filename = $('div.file-name a', $parent).attr('title');
                     }
                     //if($parent.hasClass('item-active')){
@@ -282,6 +285,7 @@
                         }
                     } else {
                         slog('选中文件:' + filename);
+                        //console.log(fileList);
                         $.each(fileList, function (index, element) {
                             if (element.server_filename == filename) {
                                 var obj = {
@@ -510,19 +514,9 @@
             +$('div.' + wordMap['list-tools']).append($dropdownbutton)
         }
 
-        //暂时没用
-        // function addLoading(){
-        //     var screenWidth = document.body.clientWidth;
-        //     var screenHeight = document.body.scrollHeight;
-        //     var left = (screenWidth-10)/2;
-        //     var top = screenHeight/2;
-        //     var $loading = $('<div id="dialog-loading" style="position:absolute;left:'+left+'px;top:'+top+'px;display:none;z-index:52;color:white;font-size:16px">处理中</div>');
-        //     $('body').append($loading);
-        // }
-
         // 我的网盘 - 下载
         function downloadClick(event) {
-            console.log('downloadClick');
+            //console.log('downloadClick');
             slog('选中文件列表：', selectFileList);
             var id = event.target.id;
             var downloadLink;
@@ -601,7 +595,7 @@
 
         //我的网盘 - 显示链接
         function linkClick(event) {
-            console.log('linkClick');
+            //console.log('linkClick');
             slog('选中文件列表：', selectFileList);
             var id = event.target.id;
             var linkList, tip;
@@ -732,7 +726,7 @@
 
         // 我的网盘 - 批量下载
         function batchClick(event) {
-            console.log('batchClick');
+            //console.log('batchClick');
             slog('选中文件列表：', selectFileList);
             if (selectFileList.length === 0) {
                 alert('获取选中文件失败，请刷新重试！');
@@ -804,7 +798,6 @@
                 }
                 list.push({filename: element.filename, downloadlink: downloadLink});
             });
-            console.log(list);
             return list;
         }
 
@@ -861,31 +854,32 @@
         //获取当前目录
         function getPath() {
             var hash = location.hash;
-            var regx = /(^|&|\/)path=([^&]*)(&|$)/i;
+            var regx = new RegExp("path=([^&]*)(&|$)",'i');
             var result = hash.match(regx);
-            return decodeURIComponent(result[2]);
+            //console.log(result);
+            return decodeURIComponent(result[1]);
         }
 
         //获取分类显示的类别，即地址栏中的type
         function getCategory() {
             var hash = location.hash;
-            var regx = /(^|&|\/)type=([^&]*)(&|$)/i;
+            var regx = new RegExp("path=([^&]*)(&|$)",'i');
             var result = hash.match(regx);
-            return decodeURIComponent(result[2]);
+            return decodeURIComponent(result[1]);
         }
 
         function getSearchKey() {
             var hash = location.hash;
-            var regx = /(^|&|\/)key=([^&]*)(&|$)/i;
+            var regx = new RegExp("key=([^&]*)(&|$)",'i');
             var result = hash.match(regx);
-            return decodeURIComponent(result[2]);
+            return decodeURIComponent(result[1]);
         }
 
-        //获取当前页面(all或者category)
+        //获取当前页面(all或者category或search)
         function getCurrentPage() {
             var hash = location.hash;
             //console.log(hash.substring(hash.indexOf('#') + 2, hash.indexOf('?')));
-            return decodeURIComponent(hash.substring(hash.indexOf('#') + 2, hash.indexOf('?')));
+            return hash.substring(hash.indexOf('#') + 2, hash.indexOf('?'));
         }
 
         //获取文件列表
@@ -1192,18 +1186,17 @@
         //获取当前目录
         function getPath() {
             var hash = location.hash;
-            var regx = /(^|&|\/)path=([^&]*)(&|$)/i;
+            var regx = new RegExp("path=([^&]*)(&|$)",'i');
             var result = hash.match(regx);
-            return decodeURIComponent(result[2]);
+            return decodeURIComponent(result[1]);
         }
 
         //获取当前的视图模式
         function getListGridStatus() {
             var status = 'list';
-            var $status_div = $('div.list-grid-switch');
-            if ($status_div.hasClass('list-switched-on')) {
+            if ($('.list-switched-on').length > 0) {
                 status = 'list';
-            } else if ($status_div.hasClass('grid-switched-on')) {
+            } else if ($('.grid-switched-on').length > 0) {
                 status = 'grid';
             }
             return status;
@@ -1279,12 +1272,12 @@
 
         //监视视图变化
         function registerListGridStatus() {
-            var $a_list = $('a[node-type=list-switch]');
+            var $a_list = $('a[data-type=list]');
             $a_list.click(function () {
                 list_grid_status = 'list';
             });
 
-            var $a_grid = $('a[node-type=grid-switch]');
+            var $a_grid = $('a[data-type=grid]');
             $a_grid.click(function () {
                 list_grid_status = 'grid';
             });
@@ -1374,6 +1367,7 @@
 
         //监视单个文件选中
         function registerFileSelect() {
+            console.log('registerFileSelect');
             //var $dd = $('div.list-view dd');
             var $dd = $('div.' + wordMap['list-view'] + ' dd');
             $dd.each(function (index, element) {
@@ -1686,7 +1680,6 @@
                     }
                 });
             }
-            console.log(result);
             return result;
         }
 
@@ -1721,7 +1714,6 @@
                     }
                 });
             }
-            console.log(result);
             return result;
         }
 
