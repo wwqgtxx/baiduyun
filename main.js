@@ -10,7 +10,7 @@
 // @match        *://yun.baidu.com/s/*
 // @match        *://pan.baidu.com/share/link*
 // @match        *://yun.baidu.com/share/link*
-// @require      https://code.jquery.com/jquery-latest.js
+// @require      https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js
 // @run-at       document-end
 // @grant        unsafeWindow
 // @grant        GM_setClipboard
