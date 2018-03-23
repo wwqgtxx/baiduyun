@@ -1,79 +1,90 @@
 // ==UserScript==
 // @name         百度网盘直接下载助手 直链加速版
-// @namespace    undefined
-// @version      1.1
+// @namespace    https://github.com/syhyz1990/baiduyun
+// @version      1.2
 // @description  直接下载百度网盘和百度网盘分享的文件,直链下载超级加速
-// @author       前人们 & 修改:by syhyz1990
+// @author       syhyz1990 <syhyz1990@outlook.com>
 // @match        *://pan.baidu.com/disk/home*
 // @match        *://yun.baidu.com/disk/home*
 // @match        *://pan.baidu.com/s/*
 // @match        *://yun.baidu.com/s/*
 // @match        *://pan.baidu.com/share/link*
 // @match        *://yun.baidu.com/share/link*
-// @require      https://code.jquery.com/jquery-latest.js
-// @run-at       document-start
+// @require      http://lib.sinaapp.com/js/jquery/1.12.4/jquery-1.12.4.min.js
+// @run-at       document-end
 // @grant        unsafeWindow
 // @grant        GM_setClipboard
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     var $ = $ || window.$;
     var log_count = 1;
     var wordMapHttp = {
-        'list-grid-switch':'yvgb9XJ',
-        'list-switched-on':'ksbXZm',
-        'grid-switched-on':'tch6W25',
-        'list-switch':'lrbo9a',
-        'grid-switch':'xh6poL',
-        'checkbox':'EOGexf',
-        'col-item':'Qxyfvg',
-        'check':'fydGNC',
-        'checked':'EzubGg',
-        'list-view':'vdAfKMb',
-        'item-active':'ngb9O6',
-        'grid-view':'JKvHJMb',
-        'bar-search':'OFaPaO',
+        'list-grid-switch': 'auiaQNyn',
+        'list-switched-on': 'ksbXZm',
+        'grid-switched-on': 'tch6W25',
+        'list-switch': 'lrbo9a',
+        'grid-switch': 'xh6poL',
+        'checkbox': 'EOGexf',  //ok
+        'col-item': 'Qxyfvg',
+        'check': 'fydGNC',
+        'checked': 'EzubGg',
+        'list-view': 'vdAfKMb',
+        'item-active': 'xrmQgr8',
+        'grid-view': 'JKvHJMb',
+        'bar-search': 'OFaPaO',
         //'default-dom':'etr9DPv',
         //'bar':'ccjr9DVe',
-        'list-tools':'QDDOQB'
+        'list-tools': 'QDDOQB'
     };
-    $( function() {
-        wordMapHttp['default-dom'] = ($('.icon-upload').parent().parent().parent().parent().parent().attr('class') ) ;
-        wordMapHttp['bar'] = ($('.icon-upload').parent().parent().parent().parent().attr('class') ) ;
-    } ) ;
+    $(function () {
+        wordMapHttp['default-dom'] = ($('.icon-upload').parent().parent().parent().parent().parent().attr('class'));
+        wordMapHttp['bar'] = ($('.icon-upload').parent().parent().parent().parent().attr('class'));
+    });
     var wordMapHttps = {
-        'list-grid-switch':'qobmXB1q',
-        'list-switched-on':'ewXm1e',
-        'grid-switched-on':'kxhkX2Em',
-        'list-switch':'rvpXm63',
-        'grid-switch':'mxgdJgwv',
-        'checkbox':'EOGexf',
-        'col-item':'Qxyfvg',
-        'check':'fydGNC',
-        'checked':'EzubGg',
-        'list-view':'vdAfKMb',
-        'item-active':'pcamXBRX',
-        'grid-view':'JKvHJMb',
-        'bar-search':'OFaPaO',
+        'list-grid-switch': 'auiaQNyn',
+        'list-switched-on': 'ewXm1e',
+        'grid-switched-on': 'kxhkX2Em',
+        'list-switch': 'rvpXm63',
+        'grid-switch': 'mxgdJgwv',
+        'checkbox': 'EOGexf',
+        'col-item': 'Qxyfvg',
+        'check': 'fydGNC',
+        'checked': 'EzubGg',
+        'list-view': 'vdAfKMb',
+        'item-active': 'xrmQgr8',
+        'grid-view': 'JKvHJMb',
+        'bar-search': 'OFaPaO',
         //'default-dom':'qkk3LED',
         //'bar':'cfj3L8W',
-        'list-tools':'QDDOQB'
+        'list-tools': 'QDDOQB'
     };
     var wordMap = location.protocol == 'http:' ? wordMapHttp : wordMapHttps;
 
     //console.log(wordMap);
 
-    function slog(c1,c2,c3){
-        c1 = c1?c1:'';
-        c2 = c2?c2:'';
-        c3 = c3?c3:'';
-        console.log('#'+ log_count++ +'-BaiDuNetdiskHelper-log:',c1,c2,c3);
+    //替换网址为高级下载链接 默认不替换 http不用传
+    function replaceDownloadLink(link, http) {
+        var http = http || false;
+        //是否强制将https替换为http
+        if (http) {
+            return link.replace('https://d.pcs.baidu.com', 'http://yqall02.baidupcs.com');
+        } else {
+            return link.replace('d.pcs.baidu.com', 'yqall02.baidupcs.com');
+        }
     }
 
-    $(function(){
-        switch(detectPage()){
+    function slog(c1, c2, c3) {
+        c1 = c1 ? c1 : '';
+        c2 = c2 ? c2 : '';
+        c3 = c3 ? c3 : '';
+        console.log('#' + log_count++ + '-BaiDuNetdiskHelper-log:', c1, c2, c3);
+    }
+
+    $(function () {
+        switch (detectPage()) {
             case 'disk':
                 var panHelper = new PanHelper();
                 panHelper.init();
@@ -89,19 +100,19 @@
     });
 
     //网盘页面的下载助手
-    function PanHelper(){
-        var yunData,sign,timestamp,bdstoken,logid,fid_list;
-        var fileList=[],selectFileList=[],batchLinkList=[],batchLinkListAll=[],linkList=[],
-            list_grid_status='list';
-        var observer,currentPage,currentPath,currentCategory,dialog,searchKey;
+    function PanHelper() {
+        var yunData, sign, timestamp, bdstoken, logid, fid_list;
+        var fileList = [], selectFileList = [], batchLinkList = [], batchLinkListAll = [], linkList = [],
+            list_grid_status = 'list';
+        var observer, currentPage, currentPath, currentCategory, dialog, searchKey;
         var panAPIUrl = location.protocol + "//" + location.host + "/api/";
         var restAPIUrl = location.protocol + "//pcs.baidu.com/rest/2.0/pcs/";
         var clientAPIUrl = location.protocol + "//d.pcs.baidu.com/rest/2.0/pcs/";
 
-        this.init = function(){
+        this.init = function () {
             yunData = unsafeWindow.yunData;
-            slog('yunData:',yunData);
-            if(yunData === undefined){
+            slog('yunData:', yunData);
+            if (yunData === undefined) {
                 slog('页面未正常加载，或者百度已经更新！');
                 return;
             }
@@ -110,26 +121,26 @@
             createObserver();
             addButton();
             createIframe();
-            dialog = new Dialog({addCopy:true});
+            dialog = new Dialog({addCopy: true});
 
             slog('网盘直接下载助手加载成功！');
         };
 
-        function initParams(){
+        function initParams() {
             sign = getSign();
             timestamp = getTimestamp();
             bdstoken = getBDStoken();
             logid = getLogID();
             currentPage = getCurrentPage();
-            slog('Current display mode:',currentPage);
+            slog('Current display mode:', currentPage);
 
-            if(currentPage == 'list')
+            if (currentPage == 'list')
                 currentPath = getPath();
 
-            if(currentPage == 'category')
+            if (currentPage == 'category')
                 currentCategory = getCategory();
 
-            if(currentPage == 'search')
+            if (currentPage == 'search')
                 searchKey = getSearchKey();
 
             refreshListGridStatus();
@@ -137,32 +148,32 @@
             refreshSelectList();
         }
 
-        function refreshFileList(){
-            if (currentPage == 'list') {
+        function refreshFileList() {
+            if (currentPage == 'all') {
                 fileList = getFileList();
-            } else if (currentPage == 'category'){
+            } else if (currentPage == 'category') {
                 fileList = getCategoryFileList();
             } else if (currentPage == 'search') {
                 fileList = getSearchFileList();
             }
         }
 
-        function refreshSelectList(){
+        function refreshSelectList() {
             selectFileList = [];
         }
 
-        function refreshListGridStatus(){
+        function refreshListGridStatus() {
             list_grid_status = getListGridStatus();
         }
 
         //获取当前的视图模式
-        function getListGridStatus(){
+        function getListGridStatus() {
             //return $('div.list-grid-switch').hasClass('list-switched-on')?'list':($('div.list-grid-switch').hasClass('grid-switched-on')?'grid':'list');
             //return $('div.itiWzPY').hasClass('kudtWY46')?'list':($('div.itiWzPY').hasClass('nytAL9w')?'grid':'list');
-            return $('div.'+wordMap['list-grid-switch']).hasClass(wordMap['list-switched-on'])?'list':($('div.'+wordMap['list-grid-switch']).hasClass(wordMap['grid-switched-on'])?'grid':'list');
+            return $('div.' + wordMap['list-grid-switch']).hasClass(wordMap['list-switched-on']) ? 'list' : ($('div.' + wordMap['list-grid-switch']).hasClass(wordMap['grid-switched-on']) ? 'grid' : 'list');
         }
 
-        function registerEventListener(){
+        function registerEventListener() {
             registerHashChange();
             registerListGridStatus();
             registerCheckbox();
@@ -171,12 +182,12 @@
         }
 
         //监视地址栏#标签的变化
-        function registerHashChange(){
-            window.addEventListener('hashchange',function(e){
+        function registerHashChange() {
+            window.addEventListener('hashchange', function (e) {
                 refreshListGridStatus();
-                if(getCurrentPage() == 'list') {
-                    if(currentPage == getCurrentPage()){
-                        if(currentPath == getPath()){
+                if (getCurrentPage() == 'all') {
+                    if (currentPage == getCurrentPage()) {
+                        if (currentPath == getPath()) {
                             return;
                         } else {
                             currentPath = getPath();
@@ -190,8 +201,8 @@
                         refreshSelectList();
                     }
                 } else if (getCurrentPage() == 'category') {
-                    if(currentPage == getCurrentPage()){
-                        if(currentCategory == getCategory()){
+                    if (currentPage == getCurrentPage()) {
+                        if (currentCategory == getCategory()) {
                             return;
                         } else {
                             currentPage = getCurrentPage();
@@ -205,9 +216,9 @@
                         refreshFileList();
                         refreshSelectList();
                     }
-                } else if(getCurrentPage() == 'search') {
-                    if(currentPage == getCurrentPage()){
-                        if(searchKey == getSearchKey()){
+                } else if (getCurrentPage() == 'search') {
+                    if (currentPage == getCurrentPage()) {
+                        if (searchKey == getSearchKey()) {
                             return;
                         } else {
                             currentPage = getCurrentPage();
@@ -226,56 +237,58 @@
         }
 
         //监视视图变化
-        function registerListGridStatus(){
+        function registerListGridStatus() {
             //var $a_list = $('a[node-type=list-switch]');
             //var $a_list = $('a[node-type=eepWzkk]');
-            var $a_list = $('a[node-type='+wordMap['list-switch']+']');
-            $a_list.click(function(){
+            var $a_list = $('a[node-type=' + wordMap['list-switch'] + ']');
+            $a_list.click(function () {
                 list_grid_status = 'list';
             });
 
             //var $a_grid = $('a[node-type=grid-switch]');
             //var $a_grid = $('a[node-type=ytnvWY7q]');
-            var $a_grid = $('a[node-type='+wordMap['grid-switch']+']');
-            $a_grid.click(function(){
+            var $a_grid = $('a[node-type=' + wordMap['grid-switch'] + ']');
+            $a_grid.click(function () {
                 list_grid_status = 'grid';
             });
         }
 
         //文件选择框
-        function registerCheckbox(){
+        function registerCheckbox() {
             //var $checkbox = $('span.checkbox');
             //var $checkbox = $('span.EOGexf');
-            var $checkbox = $('span.'+wordMap['checkbox']);
-            $checkbox.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $checkbox = $('span.' + wordMap['checkbox']);
+            $checkbox.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var $parent = $(this).parent();
                     var filename;
-                    if(list_grid_status == 'list') {
+                    if (list_grid_status == 'list') {
                         //filename = $('div.file-name div.text a',$parent).attr('title');
-                        filename = $('div.file-name div.text a',$parent).attr('title');
-                    }else if(list_grid_status == 'grid'){
+                        filename = $('div.file-name div.text a', $parent).attr('title');
+                        //console.log(list_grid_status);
+                    } else if (list_grid_status == 'grid') {
                         //filename = $('div.file-name a',$parent).attr('title');
-                        filename = $('div.file-name a',$parent).attr('title');
+                        filename = $('div.file-name a', $parent).attr('title');
                     }
                     //if($parent.hasClass('item-active')){
                     //if($parent.hasClass('prWzXA')){
-                    if($parent.hasClass(wordMap['item-active'])){
-                        slog('取消选中文件：'+filename);
-                        for(var i=0;i<selectFileList.length;i++){
-                            if(selectFileList[i].filename == filename){
-                                selectFileList.splice(i,1);
+                    //console.log(fileList);
+                    if ($parent.hasClass(wordMap['item-active'])) {
+                        slog('取消选中文件：' + filename);
+                        for (var i = 0; i < selectFileList.length; i++) {
+                            if (selectFileList[i].filename == filename) {
+                                selectFileList.splice(i, 1);
                             }
                         }
-                    }else{
-                        slog('选中文件:'+filename);
-                        $.each(fileList,function(index,element){
-                            if(element.server_filename == filename){
+                    } else {
+                        slog('选中文件:' + filename);
+                        $.each(fileList, function (index, element) {
+                            if (element.server_filename == filename) {
                                 var obj = {
-                                    filename:element.server_filename,
-                                    path:element.path,
-                                    fs_id:element.fs_id,
-                                    isdir:element.isdir
+                                    filename: element.server_filename,
+                                    path: element.path,
+                                    fs_id: element.fs_id,
+                                    isdir: element.isdir
                                 };
                                 selectFileList.push(obj);
                             }
@@ -285,37 +298,37 @@
             });
         }
 
-        function unregisterCheckbox(){
+        function unregisterCheckbox() {
             //var $checkbox = $('span.checkbox');
             //var $checkbox = $('span.EOGexf');
-            var $checkbox = $('span.'+wordMap['checkbox']);
-            $checkbox.each(function(index,element){
+            var $checkbox = $('span.' + wordMap['checkbox']);
+            $checkbox.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //全选框
-        function registerAllCheckbox(){
+        function registerAllCheckbox() {
             //var $checkbox = $('div.col-item.check');
             //var $checkbox = $('div.Qxyfvg.fydGNC');
-            var $checkbox = $('div.'+wordMap['col-item']+'.'+wordMap['check']);
-            $checkbox.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $checkbox = $('div.' + wordMap['col-item'] + '.' + wordMap['check']);
+            $checkbox.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var $parent = $(this).parent();
                     //if($parent.hasClass('checked')){
                     //if($parent.hasClass('EzubGg')){
-                    if($parent.hasClass(wordMap['checked'])){
+                    if ($parent.hasClass(wordMap['checked'])) {
                         slog('取消全选');
                         selectFileList = [];
                     } else {
                         slog('全部选中');
                         selectFileList = [];
-                        $.each(fileList,function(index,element){
+                        $.each(fileList, function (index, element) {
                             var obj = {
-                                filename:element.server_filename,
-                                path:element.path,
-                                fs_id:element.fs_id,
-                                isdir:element.isdir
+                                filename: element.server_filename,
+                                path: element.path,
+                                fs_id: element.fs_id,
+                                isdir: element.isdir
                             };
                             selectFileList.push(obj);
                         });
@@ -324,55 +337,55 @@
             });
         }
 
-        function unregisterAllCheckbox(){
+        function unregisterAllCheckbox() {
             //var $checkbox = $('div.col-item.check');
             //var $checkbox = $('div.Qxyfvg.fydGNC');
-            var $checkbox = $('div.'+wordMap['col-item']+'.'+wordMap['check']);
-            $checkbox.each(function(index,element){
+            var $checkbox = $('div.' + wordMap['col-item'] + '.' + wordMap['check']);
+            $checkbox.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //单个文件选中，点击文件不是点击选中框，会只选中该文件
-        function registerFileSelect(){
+        function registerFileSelect() {
             //var $dd = $('div.list-view dd');
             //var $dd = $('div.vdAfKMb dd');
-            var $dd = $('div.'+wordMap['list-view']+' dd');
-            $dd.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $dd = $('div.' + wordMap['list-view'] + ' dd');
+            $dd.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var nodeName = e.target.nodeName.toLowerCase();
-                    if(nodeName != 'span' && nodeName != 'a' && nodeName != 'em') {
-                        slog('shiftKey:'+e.shiftKey);
-                        if(!e.shiftKey){
+                    if (nodeName != 'span' && nodeName != 'a' && nodeName != 'em') {
+                        slog('shiftKey:' + e.shiftKey);
+                        if (!e.shiftKey) {
                             selectFileList = [];
-                            var filename = $('div.file-name div.text a',$(this)).attr('title');
+                            var filename = $('div.file-name div.text a', $(this)).attr('title');
                             slog('选中文件：' + filename);
-                            $.each(fileList,function(index,element){
-                                if(element.server_filename == filename){
+                            $.each(fileList, function (index, element) {
+                                if (element.server_filename == filename) {
                                     var obj = {
-                                        filename:element.server_filename,
-                                        path:element.path,
-                                        fs_id:element.fs_id,
-                                        isdir:element.isdir
+                                        filename: element.server_filename,
+                                        path: element.path,
+                                        fs_id: element.fs_id,
+                                        isdir: element.isdir
                                     };
                                     selectFileList.push(obj);
                                 }
                             });
-                        }else{
+                        } else {
                             selectFileList = [];
                             //var $dd_select = $('div.list-view dd.item-active');
                             //var $dd_select = $('div.vdAfKMb dd.prWzXA');
-                            var $dd_select = $('div.'+wordMap['list-view']+' dd.'+wordMap['item-active']);
-                            $.each($dd_select,function(index,element){
-                                var filename = $('div.file-name div.text a',$(element)).attr('title');
+                            var $dd_select = $('div.' + wordMap['list-view'] + ' dd.' + wordMap['item-active']);
+                            $.each($dd_select, function (index, element) {
+                                var filename = $('div.file-name div.text a', $(element)).attr('title');
                                 slog('选中文件：' + filename);
-                                $.each(fileList,function(index,element){
-                                    if(element.server_filename == filename){
+                                $.each(fileList, function (index, element) {
+                                    if (element.server_filename == filename) {
                                         var obj = {
-                                            filename:element.server_filename,
-                                            path:element.path,
-                                            fs_id:element.fs_id,
-                                            isdir:element.isdir
+                                            filename: element.server_filename,
+                                            path: element.path,
+                                            fs_id: element.fs_id,
+                                            isdir: element.isdir
                                         };
                                         selectFileList.push(obj);
                                     }
@@ -384,22 +397,22 @@
             });
         }
 
-        function unregisterFileSelect(){
+        function unregisterFileSelect() {
             //var $dd = $('div.list-view dd');
             //var $dd = $('div.vdAfKMb dd');
-            var $dd = $('div.'+wordMap['list-view']+' dd');
-            $dd.each(function(index,element){
+            var $dd = $('div.' + wordMap['list-view'] + ' dd');
+            $dd.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //监视文件列表显示变化
-        function createObserver(){
+        function createObserver() {
             var MutationObserver = window.MutationObserver;
             var options = {
                 'childList': true
             };
-            observer = new MutationObserver(function(mutations){
+            observer = new MutationObserver(function (mutations) {
                 unregisterCheckbox();
                 unregisterAllCheckbox();
                 unregisterFileSelect();
@@ -414,18 +427,19 @@
             //var list_view = document.querySelector('.vdAfKMb');
             //var grid_view = document.querySelector('.JKvHJMb');
 
-            var list_view = document.querySelector('.'+wordMap['list-view']);
-            var grid_view = document.querySelector('.'+wordMap['grid-view']);
+            var list_view = document.querySelector('.' + wordMap['list-view']);
+            var grid_view = document.querySelector('.' + wordMap['grid-view']);
 
-            observer.observe(list_view,options);
-            observer.observe(grid_view,options);
+            //console.log(list_view);
+            observer.observe(list_view, options);
+            observer.observe(grid_view, options);
         }
 
         //添加助手按钮
-        function addButton(){
+        function addButton() {
             //$('div.bar-search').css('width','18%');//修改搜索框的宽度，避免遮挡
             //$('div.OFaPaO').css('width','18%');
-            $('div.'+wordMap['bar-search']).css('width','18%');
+            $('div.' + wordMap['bar-search']).css('width', '18%');
             var $dropdownbutton = $('<span class="g-dropdown-button"></span>');
             var $dropdownbutton_a = $('<a class="g-button" href="javascript:void(0);"><span class="g-button-right"><em class="icon icon-download" title="百度网盘下载助手"></em><span class="text" style="width: auto;">下载助手</span></span></a>');
             var $dropdownbutton_span = $('<span class="menu" style="width:96px"></span>');
@@ -440,7 +454,7 @@
             var $directbutton_batchhttpslink_button = $('<a id="batchhttpslink-direct" class="g-button-menu" href="javascript:void(0);">批量链接(HTTPS)</a>');
             $directbutton_menu.append($directbutton_download_button).append($directbutton_link_button).append($directbutton_batchhttplink_button).append($directbutton_batchhttpslink_button);
             $directbutton.append($directbutton_span.append($directbutton_a).append($directbutton_menu));
-            $directbutton.hover(function(){
+            $directbutton.hover(function () {
                 $directbutton_span.toggleClass('button-open');
             });
             $directbutton_download_button.click(downloadClick);
@@ -458,7 +472,7 @@
             var $apibutton_batchhttpslink_button = $('<a id="batchhttpslink-api" class="g-button-menu" href="javascript:void(0);">批量链接(HTTPS)</a>');
             $apibutton_menu.append($apibutton_download_button).append($apibutton_link_button).append($apibutton_batchhttplink_button).append($apibutton_batchhttpslink_button);
             $apibutton.append($apibutton_span.append($apibutton_a).append($apibutton_menu));
-            $apibutton.hover(function(){
+            $apibutton.hover(function () {
                 $apibutton_span.toggleClass('button-open');
             });
             $apibutton_download_button.click(downloadClick);
@@ -468,14 +482,14 @@
 
             var $outerlinkbutton = $('<span class="g-button-menu" style="display:block"></span>');
             var $outerlinkbutton_span = $('<span class="g-dropdown-button g-dropdown-button-second" menulevel="2"></span>');
-            var $outerlinkbutton_a = $('<a class="g-button" href="javascript:void(0);"><span class="g-button-right"><span class="text" style="width:auto">外链下载</span></span></a>');
+            var $outerlinkbutton_a = $('<a class="g-button" href="javascript:void(0);"><span class="g-button-right"><span class="text" style="width:auto">已失效</span></span></a>');
             var $outerlinkbutton_menu = $('<span class="menu" style="width:120px;left:79px"></span>');
             var $outerlinkbutton_download_button = $('<a id="download-outerlink" class="g-button-menu" href="javascript:void(0);">下载</a>');
             var $outerlinkbutton_link_button = $('<a id="link-outerlink" class="g-button-menu" href="javascript:void(0);">显示链接</a>');
             var $outerlinkbutton_batchlink_button = $('<a id="batchlink-outerlink" class="g-button-menu" href="javascript:void(0);">批量链接</a>');
             $outerlinkbutton_menu.append($outerlinkbutton_download_button).append($outerlinkbutton_link_button).append($outerlinkbutton_batchlink_button);
             $outerlinkbutton.append($outerlinkbutton_span.append($outerlinkbutton_a).append($outerlinkbutton_menu));
-            $outerlinkbutton.hover(function(){
+            $outerlinkbutton.hover(function () {
                 $outerlinkbutton_span.toggleClass('button-open');
             });
             $outerlinkbutton_download_button.click(downloadClick);
@@ -485,14 +499,15 @@
             $dropdownbutton_span.append($directbutton).append($apibutton).append($outerlinkbutton);
             $dropdownbutton.append($dropdownbutton_a).append($dropdownbutton_span);
 
-            $dropdownbutton.hover(function(){
+            $dropdownbutton.hover(function () {
                 $dropdownbutton.toggleClass('button-open');
             });
 
             //$('div.default-dom div.bar div.list-tools').append($dropdownbutton);
             //$('div.irhW9pZ div.yqgR747 div.QDDOQB').append($dropdownbutton);
             //$('div.'+wordMap['default-dom']+' div.'+wordMap['bar']+' div.'+wordMap['list-tools']).append($dropdownbutton);
-            - $('div.'+wordMap['default-dom']+' div.'+wordMap['bar']+' div.'+wordMap['list-tools']).append($dropdownbutton); + $('div.'+wordMap['list-tools']).append($dropdownbutton)
+            -$('div.' + wordMap['default-dom'] + ' div.' + wordMap['bar'] + ' div.' + wordMap['list-tools']).append($dropdownbutton);
+            +$('div.' + wordMap['list-tools']).append($dropdownbutton)
         }
 
         //暂时没用
@@ -505,75 +520,77 @@
         //     $('body').append($loading);
         // }
 
-        function downloadClick(event){
-            slog('选中文件列表：',selectFileList);
+        // 我的网盘 - 下载
+        function downloadClick(event) {
+            console.log('downloadClick');
+            slog('选中文件列表：', selectFileList);
             var id = event.target.id;
             var downloadLink;
 
-            if(id == 'download-direct'){
+            if (id == 'download-direct') {
                 var downloadType;
-                if(selectFileList.length === 0) {
+                if (selectFileList.length === 0) {
                     alert("获取选中文件失败，请刷新重试！");
                     return;
                 } else if (selectFileList.length == 1) {
                     if (selectFileList[0].isdir === 1)
                         downloadType = 'batch';
                     else if (selectFileList[0].isdir === 0)
-                        downloadType= 'dlink';
+                        downloadType = 'dlink';
                     //downloadType = selectFileList[0].isdir==1?'batch':(selectFileList[0].isdir===0?'dlink':'batch');
-                } else if(selectFileList.length > 1){
+                } else if (selectFileList.length > 1) {
                     downloadType = 'batch';
                 }
                 fid_list = getFidList(selectFileList);
                 var result = getDownloadLinkWithPanAPI(downloadType);
-                if(result.errno === 0){
-                    if(downloadType == 'dlink')
+                if (result.errno === 0) {
+                    if (downloadType == 'dlink')
                         downloadLink = result.dlink[0].dlink;
-                    else if(downloadType == 'batch'){
+                    else if (downloadType == 'batch') {
                         downloadLink = result.dlink;
-                        if(selectFileList.length === 1)
+                        if (selectFileList.length === 1)
                             downloadLink = downloadLink + '&zipname=' + encodeURIComponent(selectFileList[0].filename) + '.zip';
                     }
-                    else{
+                    else {
                         alert("发生错误！");
                         return;
                     }
-                } else if(result.errno == -1){
+                } else if (result.errno == -1) {
                     alert('文件不存在或已被百度和谐，无法下载！');
                     return;
-                }else if(result.errno == 112){
+                } else if (result.errno == 112) {
                     alert("页面过期，请刷新重试！");
                     return;
-                }else{
+                } else {
                     alert("发生错误！");
                     return;
                 }
-            }else{
-                if(selectFileList.length === 0) {
+            } else {
+                if (selectFileList.length === 0) {
                     alert("获取选中文件失败，请刷新重试！");
                     return;
                 } else if (selectFileList.length > 1) {
                     alert("该方法不支持多文件下载！");
                     return;
                 } else {
-                    if(selectFileList[0].isdir == 1){
+                    if (selectFileList[0].isdir == 1) {
                         alert("该方法不支持目录下载！");
                         return;
                     }
                 }
-                if(id == 'download-api'){
+                if (id == 'download-api') {
                     downloadLink = getDownloadLinkWithRESTAPIBaidu(selectFileList[0].path);
-                } else if (id == 'download-outerlink'){
+                } else if (id == 'download-outerlink') {
                     var result = getDownloadLinkWithClientAPI(selectFileList[0].path);
-                    if(result.errno == 0){
+                    if (result.errno == 0) {
                         downloadLink = result.urls[0].url;
-                    }else if(result.errno == 1){
+                    } else if (result.errno == 1) {
                         alert('文件不存在！');
                         return;
-                    }else if(result.errno == 2){
+                    } else if (result.errno == 2) {
                         alert('文件不存在或者已被百度和谐，无法下载！');
                         return;
-                    }else{
+                    } else {
                         alert('发生错误！');
                         return;
                     }
@@ -582,244 +599,267 @@
             execDownload(downloadLink);
         }
 
-        function linkClick(event){
-            slog('选中文件列表：',selectFileList);
+        //我的网盘 - 显示链接
+        function linkClick(event) {
+            console.log('linkClick');
+            slog('选中文件列表：', selectFileList);
             var id = event.target.id;
-            var linkList,tip;
+            var linkList, tip;
 
-            if(id.indexOf('direct') != -1){
+            if (id.indexOf('direct') != -1) {
                 var downloadType;
                 var downloadLink;
-                if(selectFileList.length === 0) {
+                if (selectFileList.length === 0) {
                     alert("获取选中文件失败，请刷新重试！");
                     return;
                 } else if (selectFileList.length == 1) {
                     if (selectFileList[0].isdir === 1)
                         downloadType = 'batch';
                     else if (selectFileList[0].isdir === 0)
-                        downloadType= 'dlink';
-                } else if(selectFileList.length > 1){
+                        downloadType = 'dlink';
+                } else if (selectFileList.length > 1) {
                     downloadType = 'batch';
                 }
                 fid_list = getFidList(selectFileList);
                 var result = getDownloadLinkWithPanAPI(downloadType);
-                if(result.errno === 0){
-                    if(downloadType == 'dlink')
+                if (result.errno === 0) {
+                    if (downloadType == 'dlink')
                         downloadLink = result.dlink[0].dlink;
-                    else if(downloadType == 'batch'){
+                    else if (downloadType == 'batch') {
                         slog(selectFileList);
                         downloadLink = result.dlink;
-                        if(selectFileList.length === 1)
+                        if (selectFileList.length === 1)
                             downloadLink = downloadLink + '&zipname=' + encodeURIComponent(selectFileList[0].filename) + '.zip';
                     }
-                    else{
+                    else {
                         alert("发生错误！");
                         return;
                     }
-                }else if(result.errno == -1){
+                } else if (result.errno == -1) {
                     alert('文件不存在或已被百度和谐，无法下载！');
                     return;
-                }else if(result.errno == 112){
+                } else if (result.errno == 112) {
                     alert("页面过期，请刷新重试！");
                     return;
-                }else{
+                } else {
                     alert("发生错误！");
                     return;
                 }
-                var httplink = downloadLink.replace(/^([A-Za-z]+):/,'http:');
-                var httpslink = downloadLink.replace(/^([A-Za-z]+):/,'https:');
+                var httplink = downloadLink.replace(/^([A-Za-z]+):/, 'http:');
+                httplink = replaceDownloadLink(httplink);
+                var httpslink = downloadLink.replace(/^([A-Za-z]+):/, 'https:');
+                httpslink = replaceDownloadLink(httpslink);
                 var filename = '';
-                $.each(selectFileList,function(index,element){
-                    if(selectFileList.length == 1)
+                $.each(selectFileList, function (index, element) {
+                    if (selectFileList.length == 1)
                         filename = element.filename;
-                    else{
-                        if(index ==0)
+                    else {
+                        if (index == 0)
                             filename = element.filename;
                         else
                             filename = filename + ',' + element.filename;
                     }
                 });
                 linkList = {
-                    filename:filename,
-                    urls:[
-                        {url:httplink,rank:1},
-                        {url:httpslink,rank:2}
+                    filename: filename,
+                    urls: [
+                        {url: httplink, rank: 1},
+                        {url: httpslink, rank: 2}
                     ]
                 };
                 tip = '显示模拟百度网盘网页获取的链接，可以使用右键迅雷下载，复制到下载工具需要传递cookie，多文件打包下载的链接可以直接复制使用';
-                dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip});
-            }else{
-                if(selectFileList.length === 0) {
+                dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
+            } else {
+                if (selectFileList.length === 0) {
                     alert("获取选中文件失败，请刷新重试！");
                     return;
                 } else if (selectFileList.length > 1) {
                     alert("该方法不支持多文件下载！");
                     return;
                 } else {
-                    if(selectFileList[0].isdir == 1){
+                    if (selectFileList[0].isdir == 1) {
                         alert("该方法不支持目录下载！");
                         return;
                     }
                 }
-                if(id.indexOf('api') != -1){
+                if (id.indexOf('api') != -1) {
                     var downloadLink = getDownloadLinkWithRESTAPIBaidu(selectFileList[0].path);
-                    var httplink = downloadLink.replace(/^([A-Za-z]+):/,'http:');
-                    var httpslink = downloadLink.replace(/^([A-Za-z]+):/,'https:');
+                    var httplink = downloadLink.replace(/^([A-Za-z]+):/, 'http:');
+                    var httpslink = downloadLink.replace(/^([A-Za-z]+):/, 'https:');
                     linkList = {
-                        filename:selectFileList[0].filename,
-                        urls:[
-                            {url:httplink,rank:1},
-                            {url:httpslink,rank:2}
+                        filename: selectFileList[0].filename,
+                        urls: [
+                            {url: httplink, rank: 1},
+                            {url: httpslink, rank: 2}
                         ]
                     };
-                    httplink = httplink.replace('250528','266719');
-                    httpslink = httpslink.replace('250528','266719');
-                    linkList.urls.push({url:httplink,rank:3});
-                    linkList.urls.push({url:httpslink,rank:4});
+                    httplink = httplink.replace('250528', '266719');
+                    httpslink = httpslink.replace('250528', '266719');
+                    linkList.urls.push({url: httplink, rank: 3});
+                    linkList.urls.push({url: httpslink, rank: 4});
                     tip = '显示模拟APP获取的链接(使用百度云ID)，可以使用右键迅雷下载，复制到下载工具需要传递cookie';
-                    dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip});
-                } else if (id.indexOf('outerlink') != -1){
+                    dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
+                } else if (id.indexOf('outerlink') != -1) {
                     var result = getDownloadLinkWithClientAPI(selectFileList[0].path);
-                    if(result.errno == 0){
+                    if (result.errno == 0) {
                         linkList = {
-                            filename:selectFileList[0].filename,
-                            urls:result.urls
+                            filename: selectFileList[0].filename,
+                            urls: result.urls
                         };
-                    }else if(result.errno == 1){
+                    } else if (result.errno == 1) {
                         alert('文件不存在！');
                         return;
-                    }else if(result.errno == 2){
+                    } else if (result.errno == 2) {
                         alert('文件不存在或者已被百度和谐，无法下载！');
                         return;
-                    }else{
+                    } else {
                         alert('发生错误！');
                         return;
                     }
                     tip = '显示模拟百度网盘客户端获取的链接，可以直接复制到下载工具使用，不需要cookie';
-                    dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip,showcopy:true,showedit:true});
+                    dialog.open({
+                        title: '下载链接',
+                        type: 'link',
+                        list: linkList,
+                        tip: tip,
+                        showcopy: true,
+                        showedit: true
+                    });
                 }
             }
             //dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip});
         }
 
-        function batchClick(event){
-            slog('选中文件列表：',selectFileList);
-            if(selectFileList.length === 0){
+        // 我的网盘 - 批量下载
+        function batchClick(event) {
+            console.log('batchClick');
+            slog('选中文件列表：', selectFileList);
+            if (selectFileList.length === 0) {
                 alert('获取选中文件失败，请刷新重试！');
                 return;
             }
             var id = event.target.id;
-            var linkType,tip;
-            linkType = id.indexOf('https') == -1 ? (id.indexOf('http') == -1 ? location.protocol+':' : 'http:') : 'https:';
+            var linkType, tip;
+            linkType = id.indexOf('https') == -1 ? (id.indexOf('http') == -1 ? location.protocol + ':' : 'http:') : 'https:';
             batchLinkList = [];
             batchLinkListAll = [];
-            if(id.indexOf('direct') != -1){
+            if (id.indexOf('direct') != -1) {
                 batchLinkList = getDirectBatchLink(linkType);
                 tip = '显示所有选中文件的直接下载链接，文件夹显示为打包下载的链接';
-                if(batchLinkList.length === 0){
+                if (batchLinkList.length === 0) {
                     alert('没有链接可以显示，API链接不要全部选中文件夹！');
                     return;
                 }
-                dialog.open({title:'批量链接',type:'batch',list:batchLinkList,tip:tip,showcopy:true});
-            } else if(id.indexOf('api') != -1){
+                dialog.open({title: '批量链接', type: 'batch', list: batchLinkList, tip: tip, showcopy: true});
+            } else if (id.indexOf('api') != -1) {
                 batchLinkList = getAPIBatchLink(linkType);
                 tip = '显示所有选中文件的API下载链接，不显示文件夹';
-                if(batchLinkList.length === 0){
+                if (batchLinkList.length === 0) {
                     alert('没有链接可以显示，API链接不要全部选中文件夹！');
                     return;
                 }
-                dialog.open({title:'批量链接',type:'batch',list:batchLinkList,tip:tip,showcopy:true});
-            } else if(id.indexOf('outerlink') != -1){
+                dialog.open({title: '批量链接', type: 'batch', list: batchLinkList, tip: tip, showcopy: true});
+            } else if (id.indexOf('outerlink') != -1) {
                 batchLinkListAll = getOuterlinkBatchLinkAll();
                 batchLinkList = getOuterlinkBatchLinkFirst(batchLinkListAll);
                 tip = '显示所有选中文件的外部下载链接，不显示文件夹';
-                if(batchLinkList.length === 0){
+                if (batchLinkList.length === 0) {
                     alert('没有链接可以显示，API链接不要全部选中文件夹！');
                     return;
                 }
 
-                dialog.open({title:'批量链接',type:'batch',list:batchLinkList,tip:tip,showcopy:true,alllist:batchLinkListAll,showall:true});
+                dialog.open({
+                    title: '批量链接',
+                    type: 'batch',
+                    list: batchLinkList,
+                    tip: tip,
+                    showcopy: true,
+                    alllist: batchLinkListAll,
+                    showall: true
+                });
             }
 
             //dialog.open({title:'批量链接',type:'batch',list:batchLinkList,tip:tip,showcopy:true});
         }
 
-        function getDirectBatchLink(linkType){
+        function getDirectBatchLink(linkType) {
             var list = [];
-            $.each(selectFileList,function(index,element){
-                var downloadType,downloadLink,result;
-                if(element.isdir == 0)
+            $.each(selectFileList, function (index, element) {
+                var downloadType, downloadLink, result;
+                if (element.isdir == 0)
                     downloadType = 'dlink';
                 else
                     downloadType = 'batch';
                 fid_list = getFidList([element]);
                 result = getDownloadLinkWithPanAPI(downloadType);
-                if(result.errno == 0){
-                    if(downloadType == 'dlink')
+                if (result.errno == 0) {
+                    if (downloadType == 'dlink')
                         downloadLink = result.dlink[0].dlink;
-                    else if(downloadType == 'batch')
+                    else if (downloadType == 'batch')
                         downloadLink = result.dlink;
-                    downloadLink = downloadLink.replace(/^([A-Za-z]+):/,linkType);
-                }else{
+                    downloadLink = downloadLink.replace(/^([A-Za-z]+):/, linkType);
+                    downloadLink = replaceDownloadLink(downloadLink);
+                } else {
                     downloadLink = 'error';
                 }
-                list.push({filename:element.filename,downloadlink:downloadLink});
+                list.push({filename: element.filename, downloadlink: downloadLink});
             });
+            console.log(list);
             return list;
         }
 
-        function getAPIBatchLink(linkType){
+        function getAPIBatchLink(linkType) {
             var list = [];
-            $.each(selectFileList,function(index,element){
-                if(element.isdir == 1)
+            $.each(selectFileList, function (index, element) {
+                if (element.isdir == 1)
                     return;
                 var downloadLink;
                 downloadLink = getDownloadLinkWithRESTAPIBaidu(element.path);
-                downloadLink = downloadLink.replace(/^([A-Za-z]+):/,linkType);
-                list.push({filename:element.filename,downloadlink:downloadLink});
+                downloadLink = downloadLink.replace(/^([A-Za-z]+):/, linkType);
+                list.push({filename: element.filename, downloadlink: downloadLink});
             });
             return list;
         }
 
-        function getOuterlinkBatchLinkAll(){
+        function getOuterlinkBatchLinkAll() {
             var list = [];
-            $.each(selectFileList,function(index,element){
+            $.each(selectFileList, function (index, element) {
                 var result;
-                if(element.isdir == 1)
+                if (element.isdir == 1)
                     return;
                 result = getDownloadLinkWithClientAPI(element.path);
-                if(result.errno == 0){
+                if (result.errno == 0) {
                     //downloadLink = result.urls[0].url;
-                    list.push({filename:element.filename,links:result.urls});
-                }else{
+                    list.push({filename: element.filename, links: result.urls});
+                } else {
                     //downloadLink = 'error';
-                    list.push({filename:element.filename,links:[{rank:1,url:'error'}]});
+                    list.push({filename: element.filename, links: [{rank: 1, url: 'error'}]});
                 }
                 //list.push({filename:element.filename,downloadlink:downloadLink});
             });
             return list;
         }
 
-        function getOuterlinkBatchLinkFirst(list){
+        function getOuterlinkBatchLinkFirst(list) {
             var result = [];
-            $.each(list,function(index,element){
-                result.push({filename:element.filename,downloadlink:element.links[0].url});
+            $.each(list, function (index, element) {
+                result.push({filename: element.filename, downloadlink: element.links[0].url});
             });
             return result;
         }
 
-        function getSign(){
+        function getSign() {
             var signFnc;
-            try{
+            try {
                 signFnc = new Function("return " + yunData.sign2)();
-            } catch(e){
+            } catch (e) {
                 throw new Error(e.message);
             }
-            return base64Encode(signFnc(yunData.sign5,yunData.sign1));
+            return base64Encode(signFnc(yunData.sign5, yunData.sign1));
         }
 
         //获取当前目录
-        function getPath(){
+        function getPath() {
             var hash = location.hash;
             var regx = /(^|&|\/)path=([^&]*)(&|$)/i;
             var result = hash.match(regx);
@@ -827,227 +867,229 @@
         }
 
         //获取分类显示的类别，即地址栏中的type
-        function getCategory(){
+        function getCategory() {
             var hash = location.hash;
             var regx = /(^|&|\/)type=([^&]*)(&|$)/i;
             var result = hash.match(regx);
             return decodeURIComponent(result[2]);
         }
 
-        function getSearchKey(){
+        function getSearchKey() {
             var hash = location.hash;
             var regx = /(^|&|\/)key=([^&]*)(&|$)/i;
             var result = hash.match(regx);
             return decodeURIComponent(result[2]);
         }
 
-        //获取当前页面(list或者category)
-        function getCurrentPage(){
+        //获取当前页面(all或者category)
+        function getCurrentPage() {
             var hash = location.hash;
-            return decodeURIComponent(hash.substring(hash.indexOf('#')+1,hash.indexOf('/')));
+            //console.log(hash.substring(hash.indexOf('#') + 2, hash.indexOf('?')));
+            return decodeURIComponent(hash.substring(hash.indexOf('#') + 2, hash.indexOf('?')));
         }
 
         //获取文件列表
-        function getFileList(){
+        function getFileList() {
             var filelist = [];
             var listUrl = panAPIUrl + "list";
             var path = getPath();
             logid = getLogID();
             var params = {
-                dir:path,
-                bdstoken:bdstoken,
-                logid:logid,
-                order:'size',
-                desc:0,
-                clienttype:0,
-                showempty:0,
-                web:1,
-                channel:'chunlei',
-                appid:250528
+                dir: path,
+                bdstoken: bdstoken,
+                logid: logid,
+                order: 'size',
+                desc: 0,
+                clienttype: 0,
+                showempty: 0,
+                web: 1,
+                channel: 'chunlei',
+                appid: 250528
             };
+
             $.ajax({
-                url:listUrl,
-                async:false,
-                method:'GET',
-                data:params,
-                success:function(response){
-                    filelist = 0===response.errno ? response.list : [];
+                url: listUrl,
+                async: false,
+                method: 'GET',
+                data: params,
+                success: function (response) {
+                    filelist = 0 === response.errno ? response.list : [];
                 }
             });
             return filelist;
         }
 
         //获取分类页面下的文件列表
-        function getCategoryFileList(){
+        function getCategoryFileList() {
             var filelist = [];
             var listUrl = panAPIUrl + "categorylist";
             var category = getCategory();
             logid = getLogID();
             var params = {
-                category:category,
-                bdstoken:bdstoken,
-                logid:logid,
-                order:'size',
-                desc:0,
-                clienttype:0,
-                showempty:0,
-                web:1,
-                channel:'chunlei',
-                appid:250528
+                category: category,
+                bdstoken: bdstoken,
+                logid: logid,
+                order: 'size',
+                desc: 0,
+                clienttype: 0,
+                showempty: 0,
+                web: 1,
+                channel: 'chunlei',
+                appid: 250528
             };
             $.ajax({
-                url:listUrl,
-                async:false,
-                method:'GET',
-                data:params,
-                success:function(response){
-                    filelist = 0===response.errno ? response.info : [];
+                url: listUrl,
+                async: false,
+                method: 'GET',
+                data: params,
+                success: function (response) {
+                    filelist = 0 === response.errno ? response.info : [];
                 }
             });
             return filelist;
         }
 
-        function getSearchFileList(){
+        function getSearchFileList() {
             var filelist = [];
             var listUrl = panAPIUrl + 'search';
             logid = getLogID();
             searchKey = getSearchKey();
             var params = {
-                recursion:1,
-                order:'time',
-                desc:1,
-                showempty:0,
-                web:1,
-                page:1,
-                num:100,
-                key:searchKey,
-                channel:'chunlei',
-                app_id:250528,
-                bdstoken:bdstoken,
-                logid:logid,
-                clienttype:0
+                recursion: 1,
+                order: 'time',
+                desc: 1,
+                showempty: 0,
+                web: 1,
+                page: 1,
+                num: 100,
+                key: searchKey,
+                channel: 'chunlei',
+                app_id: 250528,
+                bdstoken: bdstoken,
+                logid: logid,
+                clienttype: 0
             };
             $.ajax({
-                url:listUrl,
-                async:false,
-                method:'GET',
-                data:params,
-                success:function(response){
-                    filelist = 0===response.errno ? response.list : [];
+                url: listUrl,
+                async: false,
+                method: 'GET',
+                data: params,
+                success: function (response) {
+                    filelist = 0 === response.errno ? response.list : [];
                 }
             });
             return filelist;
         }
 
         //生成下载时的fid_list参数
-        function getFidList(list){
+        function getFidList(list) {
             var fidlist = null;
             if (list.length === 0)
                 return null;
             var fileidlist = [];
-            $.each(list,function(index,element){
+            $.each(list, function (index, element) {
                 fileidlist.push(element.fs_id);
             });
             fidlist = '[' + fileidlist + ']';
             return fidlist;
         }
 
-        function getTimestamp(){
+        function getTimestamp() {
             return yunData.timestamp;
         }
 
-        function getBDStoken(){
+        function getBDStoken() {
             return yunData.MYBDSTOKEN;
         }
 
         //获取直接下载地址
         //这个地址不是直接下载地址，访问这个地址会返回302，response header中的location才是真实下载地址
         //暂时没有找到提取方法
-        function getDownloadLinkWithPanAPI(type){
+        function getDownloadLinkWithPanAPI(type) {
             var downloadUrl = panAPIUrl + "download";
             var result;
             logid = getLogID();
-            var params= {
-                sign:sign,
-                timestamp:timestamp,
-                fidlist:fid_list,
-                type:type,
-                channel:'chunlei',
-                web:1,
-                app_id:250528,
-                bdstoken:bdstoken,
-                logid:logid,
-                clienttype:0
+            var params = {
+                sign: sign,
+                timestamp: timestamp,
+                fidlist: fid_list,
+                type: type,
+                channel: 'chunlei',
+                web: 1,
+                app_id: 250528,
+                bdstoken: bdstoken,
+                logid: logid,
+                clienttype: 0
             };
             $.ajax({
-                url:downloadUrl,
-                async:false,
-                method:'GET',
-                data:params,
-                success:function(response){
+                url: downloadUrl,
+                async: false,
+                method: 'GET',
+                data: params,
+                success: function (response) {
                     result = response;
                 }
             });
             return result;
         }
 
-        function getDownloadLinkWithRESTAPIBaidu(path){
+        function getDownloadLinkWithRESTAPIBaidu(path) {
             var link = restAPIUrl + 'file?method=download&app_id=250528&path=' + encodeURIComponent(path);
             return link;
         }
 
-        function getDownloadLinkWithRESTAPIES(path){
+        function getDownloadLinkWithRESTAPIES(path) {
             var link = restAPIUrl + 'file?method=download&app_id=266719&path=' + encodeURIComponent(path);
             return link;
         }
 
-        function getDownloadLinkWithClientAPI(path){
+        function getDownloadLinkWithClientAPI(path) {
             var result;
             var url = clientAPIUrl + 'file?method=locatedownload&app_id=250528&ver=4.0&path=' + encodeURIComponent(path);
             $.ajax({
-                url:url,
-                method:'POST',
+                url: url,
+                method: 'POST',
                 xhrFields: {
                     withCredentials: true
                 },
-                async:false,
-                success:function(response){
+                async: false,
+                success: function (response) {
                     result = JSON.parse(response);
                 },
-                statusCode:{
-                    404:function(response){
+                statusCode: {
+                    404: function (response) {
                         result = response;
                     }
                 }
             });
-            if(result){
-                if(result.error_code == undefined){
-                    if(result.urls == undefined){
+            if (result) {
+                if (result.error_code == undefined) {
+                    if (result.urls == undefined) {
                         result.errno = 2;
-                    }else{
-                        $.each(result.urls,function(index,element){
-                            result.urls[index].url = element.url.replace('\\','');
+                    } else {
+                        $.each(result.urls, function (index, element) {
+                            result.urls[index].url = element.url.replace('\\', '');
                         });
                         result.errno = 0;
                     }
-                }else if(result.error_code == 31066){
+                } else if (result.error_code == 31066) {
                     result.errno = 1;
-                }else{
+                } else {
                     result.errno = -1;
                 }
-            }else{
+            } else {
                 result = {};
                 result.errno = -1;
             }
             return result;
         }
 
-        function execDownload(link){
-            slog("下载链接："+link);
-            $('#helperdownloadiframe').attr('src',link);
+        function execDownload(link) {
+            slog("下载链接：" + link);
+            $('#helperdownloadiframe').attr('src', link);
         }
 
-        function createIframe(){
+        function createIframe() {
             var $div = $('<div class="helper-hide" style="padding:0;margin:0;display:block"></div>');
             var $iframe = $('<iframe src="javascript:void(0)" id="helperdownloadiframe" style="display:none"></iframe>');
             $div.append($iframe);
@@ -1057,28 +1099,29 @@
     }
 
     //分享页面的下载助手
-    function PanShareHelper(){
-        var yunData,sign,timestamp,bdstoken,channel,clienttype,web,app_id,logid,encrypt,product,uk,primaryid,fid_list,extra,shareid;
+    function PanShareHelper() {
+        var yunData, sign, timestamp, bdstoken, channel, clienttype, web, app_id, logid, encrypt, product, uk,
+            primaryid, fid_list, extra, shareid;
         var vcode;
-        var shareType,buttonTarget,currentPath,list_grid_status,observer,dialog,vcodeDialog;
-        var fileList=[],selectFileList=[];
+        var shareType, buttonTarget, currentPath, list_grid_status, observer, dialog, vcodeDialog;
+        var fileList = [], selectFileList = [];
         var panAPIUrl = location.protocol + "//" + location.host + "/api/";
         var shareListUrl = location.protocol + "//" + location.host + "/share/list";
 
-        this.init = function(){
+        this.init = function () {
             yunData = unsafeWindow.yunData;
-            slog('yunData:',yunData);
-            if(yunData === undefined || yunData.FILEINFO == null){
+            slog('yunData:', yunData);
+            if (yunData === undefined || yunData.FILEINFO == null) {
                 slog('页面未正常加载，或者百度已经更新！');
                 return;
             }
             initParams();
             addButton();
-            dialog = new Dialog({addCopy:false});
-            vcodeDialog = new VCodeDialog(refreshVCode,confirmClick);
+            dialog = new Dialog({addCopy: false});
+            vcodeDialog = new VCodeDialog(refreshVCode, confirmClick);
             createIframe();
 
-            if(!isSingleShare()){
+            if (!isSingleShare()) {
                 registerEventListener();
                 createObserver();
             }
@@ -1086,7 +1129,7 @@
             slog('分享直接下载加载成功!');
         };
 
-        function initParams(){
+        function initParams() {
             shareType = getShareType();
             sign = yunData.SIGN;
             timestamp = yunData.TIMESTAMP;
@@ -1101,12 +1144,12 @@
             primaryid = yunData.SHARE_ID;
             uk = yunData.SHARE_UK;
 
-            if(shareType == 'secret'){
+            if (shareType == 'secret') {
                 extra = getExtra();
             }
-            if(isSingleShare()){
+            if (isSingleShare()) {
                 var obj = {};
-                if(yunData.CATEGORY == 2){
+                if (yunData.CATEGORY == 2) {
                     obj.filename = yunData.FILENAME;
                     obj.path = yunData.PATH;
                     obj.fs_id = yunData.FS_ID;
@@ -1115,7 +1158,7 @@
                     obj.filename = yunData.FILEINFO[0].server_filename,
                         obj.path = yunData.FILEINFO[0].path,
                         obj.fs_id = yunData.FILEINFO[0].fs_id,
-                        obj.isdir =yunData.FILEINFO[0].isdir
+                        obj.isdir = yunData.FILEINFO[0].isdir
                 }
                 selectFileList.push(obj);
             } else {
@@ -1127,27 +1170,27 @@
         }
 
         //判断分享类型（public或者secret）
-        function getShareType(){
-            return yunData.SHARE_PUBLIC===1 ? 'public' : 'secret';
+        function getShareType() {
+            return yunData.SHARE_PUBLIC === 1 ? 'public' : 'secret';
         }
 
         //判断是单个文件分享还是文件夹或者多文件分享
-        function isSingleShare(){
+        function isSingleShare() {
             return yunData.getContext === undefined ? true : false;
         }
 
         //判断是否为自己的分享链接
-        function isSelfShare(){
+        function isSelfShare() {
             return yunData.MYSELF == 1 ? true : false;
         }
 
-        function getExtra(){
+        function getExtra() {
             var seKey = decodeURIComponent(getCookie('BDCLND'));
             return '{' + '"sekey":"' + seKey + '"' + "}";
         }
 
         //获取当前目录
-        function getPath(){
+        function getPath() {
             var hash = location.hash;
             var regx = /(^|&|\/)path=([^&]*)(&|$)/i;
             var result = hash.match(regx);
@@ -1155,10 +1198,10 @@
         }
 
         //获取当前的视图模式
-        function getListGridStatus(){
+        function getListGridStatus() {
             var status = 'list';
             var $status_div = $('div.list-grid-switch');
-            if ($status_div.hasClass('list-switched-on')){
+            if ($status_div.hasClass('list-switched-on')) {
                 status = 'list';
             } else if ($status_div.hasClass('grid-switched-on')) {
                 status = 'grid';
@@ -1167,14 +1210,14 @@
         }
 
         //添加下载助手按钮
-        function addButton(){
-            if(isSingleShare()){
-                $('div.slide-show-right').css('width','500px');
-                $('div.frame-main').css('width','96%');
-                $('div.share-file-viewer').css('width','740px').css('margin-left','auto').css('margin-right','auto');
+        function addButton() {
+            if (isSingleShare()) {
+                $('div.slide-show-right').css('width', '500px');
+                $('div.frame-main').css('width', '96%');
+                $('div.share-file-viewer').css('width', '740px').css('margin-left', 'auto').css('margin-right', 'auto');
             }
             else
-                $('div.slide-show-right').css('width','500px');
+                $('div.slide-show-right').css('width', '500px');
             var $dropdownbutton = $('<span class="g-dropdown-button"></span>');
             var $dropdownbutton_a = $('<a class="g-button" data-button-id="b200" data-button-index="200" href="javascript:void(0);"></a>');
             var $dropdownbutton_a_span = $('<span class="g-button-right"><em class="icon icon-download" title="百度网盘下载助手"></em><span class="text" style="width: auto;">下载助手</span></span>');
@@ -1187,7 +1230,7 @@
             $dropdownbutton_a.append($dropdownbutton_a_span);
             $dropdownbutton.append($dropdownbutton_a).append($dropdownbutton_span);
 
-            $dropdownbutton.hover(function(){
+            $dropdownbutton.hover(function () {
                 $dropdownbutton.toggleClass('button-open');
             });
 
@@ -1197,14 +1240,14 @@
             $('div.module-share-top-bar div.bar div.x-button-box').append($dropdownbutton);
         }
 
-        function createIframe(){
+        function createIframe() {
             var $div = $('<div class="helper-hide" style="padding:0;margin:0;display:block"></div>');
             var $iframe = $('<iframe src="javascript:void(0)" id="helperdownloadiframe" style="display:none"></iframe>');
             $div.append($iframe);
             $('body').append($div);
         }
 
-        function registerEventListener(){
+        function registerEventListener() {
             registerHashChange();
             registerListGridStatus();
             registerCheckbox();
@@ -1213,10 +1256,10 @@
         }
 
         //监视地址栏#标签变化
-        function registerHashChange(){
-            window.addEventListener('hashchange',function(e){
+        function registerHashChange() {
+            window.addEventListener('hashchange', function (e) {
                 list_grid_status = getListGridStatus();
-                if(currentPath == getPath()){
+                if (currentPath == getPath()) {
                     return;
                 } else {
                     currentPath = getPath();
@@ -1226,56 +1269,56 @@
             });
         }
 
-        function refreshFileList(){
+        function refreshFileList() {
             fileList = getFileList();
         }
 
-        function refreshSelectFileList(){
+        function refreshSelectFileList() {
             selectFileList = [];
         }
 
         //监视视图变化
-        function registerListGridStatus(){
+        function registerListGridStatus() {
             var $a_list = $('a[node-type=list-switch]');
-            $a_list.click(function(){
+            $a_list.click(function () {
                 list_grid_status = 'list';
             });
 
             var $a_grid = $('a[node-type=grid-switch]');
-            $a_grid.click(function(){
+            $a_grid.click(function () {
                 list_grid_status = 'grid';
             });
         }
 
         //监视文件选择框
-        function registerCheckbox(){
+        function registerCheckbox() {
             //var $checkbox = $('span.checkbox');
-            var $checkbox = $('span.'+wordMap['checkbox']);
-            $checkbox.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $checkbox = $('span.' + wordMap['checkbox']);
+            $checkbox.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var $parent = $(this).parent();
                     var filename;
-                    if(list_grid_status == 'list') {
-                        filename = $('div.file-name div.text a',$parent).attr('title');
-                    }else if(list_grid_status == 'grid'){
-                        filename = $('div.file-name a',$parent).attr('title');
+                    if (list_grid_status == 'list') {
+                        filename = $('div.file-name div.text a', $parent).attr('title');
+                    } else if (list_grid_status == 'grid') {
+                        filename = $('div.file-name a', $parent).attr('title');
                     }
-                    if($parent.hasClass('item-active')){
-                        slog('取消选中文件：'+filename);
-                        for(var i=0;i<selectFileList.length;i++){
-                            if(selectFileList[i].filename == filename){
-                                selectFileList.splice(i,1);
+                    if ($parent.hasClass('item-active')) {
+                        slog('取消选中文件：' + filename);
+                        for (var i = 0; i < selectFileList.length; i++) {
+                            if (selectFileList[i].filename == filename) {
+                                selectFileList.splice(i, 1);
                             }
                         }
-                    }else{
-                        slog('选中文件：'+filename);
-                        $.each(fileList,function(index,element){
-                            if(element.server_filename == filename){
+                    } else {
+                        slog('选中文件：' + filename);
+                        $.each(fileList, function (index, element) {
+                            if (element.server_filename == filename) {
                                 var obj = {
-                                    filename:element.server_filename,
-                                    path:element.path,
-                                    fs_id:element.fs_id,
-                                    isdir:element.isdir
+                                    filename: element.server_filename,
+                                    path: element.path,
+                                    fs_id: element.fs_id,
+                                    isdir: element.isdir
                                 };
                                 selectFileList.push(obj);
                             }
@@ -1285,34 +1328,34 @@
             });
         }
 
-        function unregisterCheckbox(){
+        function unregisterCheckbox() {
             //var $checkbox = $('span.checkbox');
-            var $checkbox = $('span.'+wordMap['checkbox']);
-            $checkbox.each(function(index,element){
+            var $checkbox = $('span.' + wordMap['checkbox']);
+            $checkbox.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //监视全选框
-        function registerAllCheckbox(){
+        function registerAllCheckbox() {
             //var $checkbox = $('div.col-item.check');
-            var $checkbox = $('div.'+wordMap['col-item']+'.'+wordMap['check']);
-            $checkbox.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $checkbox = $('div.' + wordMap['col-item'] + '.' + wordMap['check']);
+            $checkbox.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var $parent = $(this).parent();
                     //if($parent.hasClass('checked')){
-                    if($parent.hasClass(wordMap['checked'])){
+                    if ($parent.hasClass(wordMap['checked'])) {
                         slog('取消全选');
                         selectFileList = [];
                     } else {
                         slog('全部选中');
                         selectFileList = [];
-                        $.each(fileList,function(index,element){
+                        $.each(fileList, function (index, element) {
                             var obj = {
-                                filename:element.server_filename,
-                                path:element.path,
-                                fs_id:element.fs_id,
-                                isdir:element.isdir
+                                filename: element.server_filename,
+                                path: element.path,
+                                fs_id: element.fs_id,
+                                isdir: element.isdir
                             };
                             selectFileList.push(obj);
                         });
@@ -1321,32 +1364,32 @@
             });
         }
 
-        function unregisterAllCheckbox(){
+        function unregisterAllCheckbox() {
             //var $checkbox = $('div.col-item.check');
-            var $checkbox = $('div.'+wordMap['col-item']+'.'+wordMap['check']);
-            $checkbox.each(function(index,element){
+            var $checkbox = $('div.' + wordMap['col-item'] + '.' + wordMap['check']);
+            $checkbox.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //监视单个文件选中
-        function registerFileSelect(){
+        function registerFileSelect() {
             //var $dd = $('div.list-view dd');
-            var $dd = $('div.'+wordMap['list-view']+' dd');
-            $dd.each(function(index,element){
-                $(element).bind('click',function(e){
+            var $dd = $('div.' + wordMap['list-view'] + ' dd');
+            $dd.each(function (index, element) {
+                $(element).bind('click', function (e) {
                     var nodeName = e.target.nodeName.toLowerCase();
-                    if(nodeName != 'span' && nodeName != 'a' && nodeName != 'em') {
+                    if (nodeName != 'span' && nodeName != 'a' && nodeName != 'em') {
                         selectFileList = [];
-                        var filename = $('div.file-name div.text a',$(this)).attr('title');
+                        var filename = $('div.file-name div.text a', $(this)).attr('title');
                         slog('选中文件：' + filename);
-                        $.each(fileList,function(index,element){
-                            if(element.server_filename == filename){
+                        $.each(fileList, function (index, element) {
+                            if (element.server_filename == filename) {
                                 var obj = {
-                                    filename:element.server_filename,
-                                    path:element.path,
-                                    fs_id:element.fs_id,
-                                    isdir:element.isdir
+                                    filename: element.server_filename,
+                                    path: element.path,
+                                    fs_id: element.fs_id,
+                                    isdir: element.isdir
                                 };
                                 selectFileList.push(obj);
                             }
@@ -1356,21 +1399,21 @@
             });
         }
 
-        function unregisterFileSelect(){
+        function unregisterFileSelect() {
             //var $dd = $('div.list-view dd');
-            var $dd = $('div.'+wordMap['list-view']+' dd');
-            $dd.each(function(index,element){
+            var $dd = $('div.' + wordMap['list-view'] + ' dd');
+            $dd.each(function (index, element) {
                 $(element).unbind('click');
             });
         }
 
         //监视文件列表显示变化
-        function createObserver(){
+        function createObserver() {
             var MutationObserver = window.MutationObserver;
             var options = {
                 'childList': true
             };
-            observer = new MutationObserver(function(mutations){
+            observer = new MutationObserver(function (mutations) {
                 unregisterCheckbox();
                 unregisterAllCheckbox();
                 unregisterFileSelect();
@@ -1381,42 +1424,42 @@
             //var list_view = document.querySelector('.list-view');
             //var grid_view = document.querySelector('.grid-view');
 
-            var list_view = document.querySelector('.'+wordMap['list-view']);
-            var grid_view = document.querySelector('.'+wordMap['grid-view']);
+            var list_view = document.querySelector('.' + wordMap['list-view']);
+            var grid_view = document.querySelector('.' + wordMap['grid-view']);
 
-            observer.observe(list_view,options);
-            observer.observe(grid_view,options);
+            observer.observe(list_view, options);
+            observer.observe(grid_view, options);
         }
 
         //获取文件信息列表
-        function getFileList(){
+        function getFileList() {
             var result = [];
-            if(getPath() == '/'){
+            if (getPath() == '/') {
                 result = yunData.FILEINFO;
             } else {
                 logid = getLogID();
                 var params = {
-                    uk:uk,
-                    shareid:shareid,
-                    order:'other',
-                    desc:1,
-                    showempty:0,
-                    web:web,
-                    dir:getPath(),
-                    t:Math.random(),
-                    bdstoken:bdstoken,
-                    channel:channel,
-                    clienttype:clienttype,
-                    app_id:app_id,
-                    logid:logid
+                    uk: uk,
+                    shareid: shareid,
+                    order: 'other',
+                    desc: 1,
+                    showempty: 0,
+                    web: web,
+                    dir: getPath(),
+                    t: Math.random(),
+                    bdstoken: bdstoken,
+                    channel: channel,
+                    clienttype: clienttype,
+                    app_id: app_id,
+                    logid: logid
                 };
                 $.ajax({
-                    url:shareListUrl,
-                    method:'GET',
-                    async:false,
-                    data:params,
-                    success:function(response){
-                        if(response.errno === 0){
+                    url: shareListUrl,
+                    method: 'GET',
+                    async: false,
+                    data: params,
+                    success: function (response) {
+                        if (response.errno === 0) {
                             result = response.list;
                         }
                     }
@@ -1425,150 +1468,19 @@
             return result;
         }
 
-        function downloadButtonClick(){
-            slog('选中文件列表：',selectFileList);
-            if(selectFileList.length === 0){
+        function downloadButtonClick() {
+            //console.log('点击直接下载按钮');
+            slog('选中文件列表：', selectFileList);
+            if (selectFileList.length === 0) {
                 alert('获取文件ID失败，请重试');
                 return;
             }
             buttonTarget = 'download';
             var downloadLink = getDownloadLink();
 
-            if(downloadLink.errno == -20) {
+            if (downloadLink.errno == -20) {
                 vcode = getVCode();
-                if(vcode.errno !== 0){
-                    alert('获取验证码失败！');
-                    return;
-                }
-                vcodeDialog.open(vcode);
-            } else if(downloadLink.errno == 112){
-                alert('页面过期，请刷新重试');
-                return;
-            } else if (downloadLink.errno === 0) {
-                var link;
-                if(selectFileList.length == 1 && selectFileList[0].isdir === 0)
-                    link = downloadLink.list[0].dlink;
-                else
-                    link = downloadLink.dlink;
-                link = link.replace("https://d.pcs.baidu.com","http://yqall02.baidupcs.com");
-                execDownload(link);
-            } else {
-                alert('获取下载链接失败！');
-                return;
-            }
-        }
-
-        //获取验证码
-        function getVCode(){
-            var url = panAPIUrl + 'getvcode';
-            var result;
-            logid = getLogID();
-            var params = {
-                prod:'pan',
-                t:Math.random(),
-                bdstoken:bdstoken,
-                channel:channel,
-                clienttype:clienttype,
-                web:web,
-                app_id:app_id,
-                logid:logid
-            };
-            $.ajax({
-                url:url,
-                method:'GET',
-                async:false,
-                data:params,
-                success:function(response){
-                    result = response;
-                }
-            });
-            return result;
-        }
-
-        //刷新验证码
-        function refreshVCode(){
-            vcode = getVCode();
-            $('#dialog-img').attr('src',vcode.img);
-        }
-
-        //验证码确认提交
-        function confirmClick(){
-            var val = $('#dialog-input').val();
-            if(val.length === 0) {
-                $('#dialog-err').text('请输入验证码');
-                return;
-            } else if(val.length < 4) {
-                $('#dialog-err').text('验证码输入错误，请重新输入');
-                return;
-            }
-            var result = getDownloadLinkWithVCode(val);
-            if(result.errno == -20){
-                vcodeDialog.close();
-                $('#dialog-err').text('验证码输入错误，请重新输入');
-                refreshVCode();
-                if(!vcode || vcode.errno !== 0){
-                    alert('获取验证码失败！');
-                    return;
-                }
-                vcodeDialog.open();
-            } else if (result.errno === 0) {
-                vcodeDialog.close();
-                var link;
-                if(selectFileList.length ==1 && selectFileList[0].isdir === 0)
-                    link = result.list[0].dlink;
-                else
-                    link = result.dlink;
-                if(buttonTarget == 'download'){
-                    execDownload(link);
-                } else if (buttonTarget == 'link') {
-                    var filename = '';
-                    $.each(selectFileList,function(index,element){
-                        if(selectFileList.length == 1)
-                            filename = element.filename;
-                        else{
-                            if(index ==0)
-                                filename = element.filename;
-                            else
-                                filename = filename + ',' + element.filename;
-                        }
-                    });
-                    link = link.replace("https://d.pcs.baidu.com","http://yqall02.baidupcs.com");
-                    var linkList = {
-                        filename:filename,
-                        urls:[
-                            {url:link,rank:1}
-                        ]
-                    };
-                    var tip = "显示获取的链接，可以使用右键迅雷下载，复制无用，需要传递cookie";
-                    dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip});
-                }
-            } else {
-                alert('发生错误！');
-                return;
-            }
-        }
-
-        //生成下载用的fid_list参数
-        function getFidList(){
-            var fidlist = [];
-            $.each(selectFileList,function(index,element){
-                fidlist.push(element.fs_id);
-            });
-            return '[' + fidlist + ']';
-        }
-
-        function linkButtonClick(){
-            slog('选中文件列表：',selectFileList);
-            if(selectFileList.length === 0){
-                alert('没有选中文件，请重试');
-                return;
-            }
-            buttonTarget = 'link';
-            var downloadLink = getDownloadLink();
-
-            if(downloadLink.errno == -20) {
-                vcode = getVCode();
-                if(!vcode || vcode.errno !== 0){
+                if (vcode.errno !== 0) {
                     alert('获取验证码失败！');
                     return;
                 }
@@ -1578,34 +1490,166 @@
                 return;
             } else if (downloadLink.errno === 0) {
                 var link;
-                if(selectFileList.length == 1 && selectFileList[0].isdir === 0)
+                if (selectFileList.length == 1 && selectFileList[0].isdir === 0)
                     link = downloadLink.list[0].dlink;
                 else
                     link = downloadLink.dlink;
-                if(selectFileList.length == 1)
-                    $('#dialog-downloadlink').attr('href',link).text(link);
+                //link = link.replace("https://d.pcs.baidu.com","http://yqall02.baidupcs.com");
+                execDownload(link);
+            } else {
+                alert('获取下载链接失败！');
+                return;
+            }
+        }
+
+        //获取验证码
+        function getVCode() {
+            var url = panAPIUrl + 'getvcode';
+            var result;
+            logid = getLogID();
+            var params = {
+                prod: 'pan',
+                t: Math.random(),
+                bdstoken: bdstoken,
+                channel: channel,
+                clienttype: clienttype,
+                web: web,
+                app_id: app_id,
+                logid: logid
+            };
+            $.ajax({
+                url: url,
+                method: 'GET',
+                async: false,
+                data: params,
+                success: function (response) {
+                    result = response;
+                }
+            });
+            return result;
+        }
+
+        //刷新验证码
+        function refreshVCode() {
+            vcode = getVCode();
+            $('#dialog-img').attr('src', vcode.img);
+        }
+
+        //验证码确认提交
+        function confirmClick() {
+            var val = $('#dialog-input').val();
+            if (val.length === 0) {
+                $('#dialog-err').text('请输入验证码');
+                return;
+            } else if (val.length < 4) {
+                $('#dialog-err').text('验证码输入错误，请重新输入');
+                return;
+            }
+            var result = getDownloadLinkWithVCode(val);
+            if (result.errno == -20) {
+                vcodeDialog.close();
+                $('#dialog-err').text('验证码输入错误，请重新输入');
+                refreshVCode();
+                if (!vcode || vcode.errno !== 0) {
+                    alert('获取验证码失败！');
+                    return;
+                }
+                vcodeDialog.open();
+            } else if (result.errno === 0) {
+                vcodeDialog.close();
+                var link;
+                if (selectFileList.length == 1 && selectFileList[0].isdir === 0)
+                    link = result.list[0].dlink;
                 else
-                    $('#dialog-downloadlink').attr('href',link).text(link);
+                    link = result.dlink;
+                if (buttonTarget == 'download') {
+                    execDownload(link);
+                } else if (buttonTarget == 'link') {
+                    var filename = '';
+                    $.each(selectFileList, function (index, element) {
+                        if (selectFileList.length == 1)
+                            filename = element.filename;
+                        else {
+                            if (index == 0)
+                                filename = element.filename;
+                            else
+                                filename = filename + ',' + element.filename;
+                        }
+                    });
+                    link = replaceDownloadLink(link, true);
+                    var linkList = {
+                        filename: filename,
+                        urls: [
+                            {url: link, rank: 1}
+                        ]
+                    };
+                    var tip = "显示获取的链接，可以使用右键迅雷下载，复制无用，需要传递cookie";
+                    dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
+                }
+            } else {
+                alert('发生错误！');
+                return;
+            }
+        }
+
+        //生成下载用的fid_list参数
+        function getFidList() {
+            var fidlist = [];
+            $.each(selectFileList, function (index, element) {
+                fidlist.push(element.fs_id);
+            });
+            return '[' + fidlist + ']';
+        }
+
+        function linkButtonClick() {
+            slog('选中文件列表：', selectFileList);
+            if (selectFileList.length === 0) {
+                alert('没有选中文件，请重试');
+                return;
+            }
+            buttonTarget = 'link';
+            var downloadLink = getDownloadLink();
+
+            if (downloadLink.errno == -20) {
+                vcode = getVCode();
+                if (!vcode || vcode.errno !== 0) {
+                    alert('获取验证码失败！');
+                    return;
+                }
+                vcodeDialog.open(vcode);
+            } else if (downloadLink.errno == 112) {
+                alert('页面过期，请刷新重试');
+                return;
+            } else if (downloadLink.errno === 0) {
+                var link;
+                if (selectFileList.length == 1 && selectFileList[0].isdir === 0)
+                    link = downloadLink.list[0].dlink;
+                else
+                    link = downloadLink.dlink;
+                if (selectFileList.length == 1)
+                    $('#dialog-downloadlink').attr('href', link).text(link);
+                else
+                    $('#dialog-downloadlink').attr('href', link).text(link);
                 var filename = '';
-                $.each(selectFileList,function(index,element){
-                    if(selectFileList.length == 1)
+                $.each(selectFileList, function (index, element) {
+                    if (selectFileList.length == 1)
                         filename = element.filename;
-                    else{
-                        if(index ==0)
+                    else {
+                        if (index == 0)
                             filename = element.filename;
                         else
                             filename = filename + ',' + element.filename;
                     }
                 });
-                link = link.replace("https://d.pcs.baidu.com","http://yqall02.baidupcs.com");
+                link = replaceDownloadLink(link, true);
                 var linkList = {
-                    filename:filename,
-                    urls:[
-                        {url:link,rank:1}
+                    filename: filename,
+                    urls: [
+                        {url: link, rank: 1}
                     ]
                 };
                 var tip = "显示获取的链接，可以使用右键迅雷下载，复制无用，需要传递cookie";
-                dialog.open({title:'下载链接',type:'link',list:linkList,tip:tip});
+                dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
             } else {
                 alert('获取下载链接失败！');
                 return;
@@ -1613,31 +1657,31 @@
         }
 
         //获取下载链接
-        function getDownloadLink(){
+        function getDownloadLink() {
             var result;
-            if(isSingleShare){
+            if (isSingleShare) {
                 fid_list = getFidList();
                 logid = getLogID();
-                var url = panAPIUrl + 'sharedownload?sign=' + sign + '&timestamp=' + timestamp + '&bdstoken=' + bdstoken + '&channel=' + channel + '&clienttype=' + clienttype + '&web='+ web + '&app_id=' + app_id + '&logid=' + logid;
+                var url = panAPIUrl + 'sharedownload?sign=' + sign + '&timestamp=' + timestamp + '&bdstoken=' + bdstoken + '&channel=' + channel + '&clienttype=' + clienttype + '&web=' + web + '&app_id=' + app_id + '&logid=' + logid;
                 var params = {
-                    encrypt:encrypt,
-                    product:product,
-                    uk:uk,
-                    primaryid:primaryid,
-                    fid_list:fid_list
+                    encrypt: encrypt,
+                    product: product,
+                    uk: uk,
+                    primaryid: primaryid,
+                    fid_list: fid_list
                 };
-                if(shareType == 'secret'){
+                if (shareType == 'secret') {
                     params.extra = extra;
                 }
-                if(selectFileList[0].isdir == 1 || selectFileList.length > 1){
+                if (selectFileList[0].isdir == 1 || selectFileList.length > 1) {
                     params.type = 'batch';
                 }
                 $.ajax({
-                    url:url,
-                    method:'POST',
-                    async:false,
-                    data:params,
-                    success:function(response){
+                    url: url,
+                    method: 'POST',
+                    async: false,
+                    data: params,
+                    success: function (response) {
                         result = response;
                     }
                 });
@@ -1647,32 +1691,32 @@
         }
 
         //有验证码输入时获取下载链接
-        function getDownloadLinkWithVCode(vcodeInput){
+        function getDownloadLinkWithVCode(vcodeInput) {
             var result;
-            if(isSingleShare){
+            if (isSingleShare) {
                 fid_list = getFidList();
-                var url = panAPIUrl + 'sharedownload?sign=' + sign + '&timestamp=' + timestamp + '&bdstoken=' + bdstoken + '&channel=' + channel + '&clienttype=' + clienttype + '&web='+ web + '&app_id=' + app_id + '&logid=' + logid;
+                var url = panAPIUrl + 'sharedownload?sign=' + sign + '&timestamp=' + timestamp + '&bdstoken=' + bdstoken + '&channel=' + channel + '&clienttype=' + clienttype + '&web=' + web + '&app_id=' + app_id + '&logid=' + logid;
                 var params = {
-                    encrypt:encrypt,
-                    product:product,
-                    vcode_input:vcodeInput,
-                    vcode_str:vcode.vcode,
-                    uk:uk,
-                    primaryid:primaryid,
-                    fid_list:fid_list
+                    encrypt: encrypt,
+                    product: product,
+                    vcode_input: vcodeInput,
+                    vcode_str: vcode.vcode,
+                    uk: uk,
+                    primaryid: primaryid,
+                    fid_list: fid_list
                 };
-                if(shareType == 'secret'){
+                if (shareType == 'secret') {
                     params.extra = extra;
                 }
-                if(selectFileList[0].isdir == 1 || selectFileList.length > 1 ){
+                if (selectFileList[0].isdir == 1 || selectFileList.length > 1) {
                     params.type = 'batch';
                 }
                 $.ajax({
-                    url:url,
-                    method:'POST',
-                    async:false,
-                    data:params,
-                    success:function(response){
+                    url: url,
+                    method: 'POST',
+                    async: false,
+                    data: params,
+                    success: function (response) {
                         result = response;
                     }
                 });
@@ -1681,22 +1725,22 @@
             return result;
         }
 
-        function execDownload(link){
-            slog('下载链接：'+link);
-            $('#helperdownloadiframe').attr('src',link);
+        function execDownload(link) {
+            slog('下载链接：' + link);
+            $('#helperdownloadiframe').attr('src', link);
         }
     }
 
-    function base64Encode(t){
+    function base64Encode(t) {
         var a, r, e, n, i, s, o = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        for (e = t.length,r = 0,a = ""; e > r; ) {
-            if (n = 255 & t.charCodeAt(r++),r == e) {
+        for (e = t.length, r = 0, a = ""; e > r;) {
+            if (n = 255 & t.charCodeAt(r++), r == e) {
                 a += o.charAt(n >> 2);
                 a += o.charAt((3 & n) << 4);
                 a += "==";
                 break;
             }
-            if (i = t.charCodeAt(r++),r == e) {
+            if (i = t.charCodeAt(r++), r == e) {
                 a += o.charAt(n >> 2);
                 a += o.charAt((3 & n) << 4 | (240 & i) >> 4);
                 a += o.charAt((15 & i) << 2);
@@ -1712,24 +1756,25 @@
         return a;
     }
 
-    function detectPage(){
+    function detectPage() {
         var regx = /[\/].+[\/]/g;
         var page = location.pathname.match(regx);
-        return page[0].replace(/\//g,'');
+        return page[0].replace(/\//g, '');
     }
 
     function getCookie(e) {
         var o, t;
-        var n = document,c=decodeURI;
-        return n.cookie.length > 0 && (o = n.cookie.indexOf(e + "="),-1 != o) ? (o = o + e.length + 1,t = n.cookie.indexOf(";", o),-1 == t && (t = n.cookie.length),c(n.cookie.substring(o, t))) : "";
+        var n = document, c = decodeURI;
+        return n.cookie.length > 0 && (o = n.cookie.indexOf(e + "="), -1 != o) ? (o = o + e.length + 1, t = n.cookie.indexOf(";", o), -1 == t && (t = n.cookie.length), c(n.cookie.substring(o, t))) : "";
     }
 
-    function getLogID(){
+    function getLogID() {
         var name = "BAIDUID";
         var u = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/~！@#￥%……&";
         var d = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
         var f = String.fromCharCode;
-        function l(e){
+
+        function l(e) {
             if (e.length < 2) {
                 var n = e.charCodeAt(0);
                 return 128 > n ? e : 2048 > n ? f(192 | n >>> 6) + f(128 | 63 & n) : f(224 | n >>> 12 & 15) + f(128 | n >>> 6 & 63) + f(128 | 63 & n);
@@ -1737,37 +1782,44 @@
             var n = 65536 + 1024 * (e.charCodeAt(0) - 55296) + (e.charCodeAt(1) - 56320);
             return f(240 | n >>> 18 & 7) + f(128 | n >>> 12 & 63) + f(128 | n >>> 6 & 63) + f(128 | 63 & n);
         }
-        function g(e){
+
+        function g(e) {
             return (e + "" + Math.random()).replace(d, l);
         }
-        function m(e){
+
+        function m(e) {
             var n = [0, 2, 1][e.length % 3];
             var t = e.charCodeAt(0) << 16 | (e.length > 1 ? e.charCodeAt(1) : 0) << 8 | (e.length > 2 ? e.charCodeAt(2) : 0);
             var o = [u.charAt(t >>> 18), u.charAt(t >>> 12 & 63), n >= 2 ? "=" : u.charAt(t >>> 6 & 63), n >= 1 ? "=" : u.charAt(63 & t)];
             return o.join("");
         }
-        function h(e){
+
+        function h(e) {
             return e.replace(/[\s\S]{1,3}/g, m);
         }
-        function p(){
+
+        function p() {
             return h(g((new Date()).getTime()));
         }
-        function w(e,n){
-            return n ? p(String(e)).replace(/[+\/]/g, function(e) {
+
+        function w(e, n) {
+            return n ? p(String(e)).replace(/[+\/]/g, function (e) {
                 return "+" == e ? "-" : "_";
             }).replace(/=/g, "") : p(String(e));
         }
+
         return w(getCookie(name));
     }
 
-    function Dialog(){
+    function Dialog() {
         var linkList = [];
         var showParams;
-        var dialog,shadow;
-        function createDialog(){
+        var dialog, shadow;
+
+        function createDialog() {
             var screenWidth = document.body.clientWidth;
-            var dialogLeft = screenWidth>800 ? (screenWidth-800)/2 : 0;
-            var $dialog_div = $('<div class="dialog" style="width: 800px; top: 0px; bottom: auto; left: '+dialogLeft+'px; right: auto; display: hidden; visibility: visible; z-index: 52;"></div>');
+            var dialogLeft = screenWidth > 800 ? (screenWidth - 800) / 2 : 0;
+            var $dialog_div = $('<div class="dialog" style="width: 800px; top: 0px; bottom: auto; left: ' + dialogLeft + 'px; right: auto; display: hidden; visibility: visible; z-index: 52;"></div>');
             var $dialog_header = $('<div class="dialog-header"><h3><span class="dialog-title" style="display:inline-block;width:740px;white-space:nowrap;overflow-x:hidden;text-overflow:ellipsis"></span></h3></div>');
             var $dialog_control = $('<div class="dialog-control"><span class="dialog-icon dialog-close">×</span></div>');
             var $dialog_body = $('<div class="dialog-body" style="max-height:450px;overflow-y:auto;padding:0 20px;"></div>');
@@ -1781,16 +1833,16 @@
             var $dialog_radio_single = $('<input type="radio" name="showmode" value="single"><span>单行</span>');
             $dialog_radio_div.append($dialog_radio_multi).append($dialog_radio_single);
             $dialog_div.append($dialog_radio_div);
-            $('input[type=radio][name=showmode]',$dialog_radio_div).change(function(){
+            $('input[type=radio][name=showmode]', $dialog_radio_div).change(function () {
                 var value = this.value;
-                var $textarea = $('div.dialog-body textarea[name=dialog-textarea]',dialog);
+                var $textarea = $('div.dialog-body textarea[name=dialog-textarea]', dialog);
                 var content = $textarea.val();
-                if(value == 'multi'){
-                    content = content.replace(/\s+/g,'\n');
-                    $textarea.css('height','300px');
-                } else if(value == 'single'){
-                    content = content.replace(/\n+/g,' ');
-                    $textarea.css('height','');
+                if (value == 'multi') {
+                    content = content.replace(/\s+/g, '\n');
+                    $textarea.css('height', '300px');
+                } else if (value == 'single') {
+                    content = content.replace(/\n+/g, ' ');
+                    $textarea.css('height', '');
                 }
                 $textarea.val(content);
             });
@@ -1805,34 +1857,34 @@
             $dialog_button.append($dialog_button_div);
             $dialog_div.append($dialog_button);
 
-            $dialog_copy_button.click(function(){
+            $dialog_copy_button.click(function () {
                 var content = '';
-                if(showParams.type == 'batch'){
-                    $.each(linkList,function(index,element){
-                        if(element.downloadlink == 'error')
+                if (showParams.type == 'batch') {
+                    $.each(linkList, function (index, element) {
+                        if (element.downloadlink == 'error')
                             return;
-                        if(index == linkList.length-1)
+                        if (index == linkList.length - 1)
                             content = content + element.downloadlink;
                         else
-                            content =  content + element.downloadlink + '\n';
+                            content = content + element.downloadlink + '\n';
                     });
-                } else if(showParams.type == 'link'){
-                    $.each(linkList,function(index,element){
-                        if(element.url == 'error')
+                } else if (showParams.type == 'link') {
+                    $.each(linkList, function (index, element) {
+                        if (element.url == 'error')
                             return;
-                        if(index == linkList.length-1)
+                        if (index == linkList.length - 1)
                             content = content + element.url;
                         else
-                            content =  content + element.url + '\n';
+                            content = content + element.url + '\n';
                     });
                 }
-                GM_setClipboard(content,'text');
+                GM_setClipboard(content, 'text');
                 alert('已将链接复制到剪贴板！');
             });
 
-            $dialog_edit_button.click(function(){
-                var $dialog_textarea = $('div.dialog-body textarea[name=dialog-textarea]',dialog);
-                var $dialog_item = $('div.dialog-body div',dialog);
+            $dialog_edit_button.click(function () {
+                var $dialog_textarea = $('div.dialog-body textarea[name=dialog-textarea]', dialog);
+                var $dialog_item = $('div.dialog-body div', dialog);
                 $dialog_item.hide();
                 $dialog_copy_button.hide();
                 $dialog_edit_button.hide();
@@ -1841,9 +1893,9 @@
                 $dialog_exit_button.show();
             });
 
-            $dialog_exit_button.click(function(){
-                var $dialog_textarea = $('div.dialog-body textarea[name=dialog-textarea]',dialog);
-                var $dialog_item = $('div.dialog-body div',dialog);
+            $dialog_exit_button.click(function () {
+                var $dialog_textarea = $('div.dialog-body textarea[name=dialog-textarea]', dialog);
+                var $dialog_item = $('div.dialog-body div', dialog);
                 $dialog_textarea.hide();
                 $dialog_radio_div.hide();
                 $dialog_item.show();
@@ -1859,116 +1911,116 @@
             return $dialog_div;
         }
 
-        function createShadow(){
+        function createShadow() {
             var $shadow = $('<div class="dialog-shadow" style="position: fixed; left: 0px; top: 0px; z-index: 50; background: rgb(0, 0, 0) none repeat scroll 0% 0%; opacity: 0.5; width: 100%; height: 100%; display: none;"></div>');
             $('body').append($shadow);
             return $shadow;
         }
 
-        this.open = function(params){
+        this.open = function (params) {
             showParams = params;
             linkList = [];
-            if(params.type == 'link'){
+            if (params.type == 'link') {
                 linkList = params.list.urls;
-                $('div.dialog-header h3 span.dialog-title',dialog).text(params.title + "：" +params.list.filename);
-                $.each(params.list.urls,function(index,element){
-                    var $div = $('<div><div style="width:30px;float:left">'+element.rank+':</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a href="'+element.url+'">'+element.url+'</a></div></div>');
-                    $('div.dialog-body',dialog).append($div);
+                $('div.dialog-header h3 span.dialog-title', dialog).text(params.title + "：" + params.list.filename);
+                $.each(params.list.urls, function (index, element) {
+                    var $div = $('<div><div style="width:30px;float:left">' + element.rank + ':</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><a href="' + element.url + '">' + element.url + '</a></div></div>');
+                    $('div.dialog-body', dialog).append($div);
                 });
-            } else if(params.type == 'batch'){
+            } else if (params.type == 'batch') {
                 linkList = params.list;
-                $('div.dialog-header h3 span.dialog-title',dialog).text(params.title);
-                if(params.showall){
-                    $.each(params.list,function(index,element){
+                $('div.dialog-header h3 span.dialog-title', dialog).text(params.title);
+                if (params.showall) {
+                    $.each(params.list, function (index, element) {
                         var $item_div = $('<div class="item-container" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>');
-                        var $item_name = $('<div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="'+element.filename+'">'+element.filename+'</div>');
+                        var $item_name = $('<div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="' + element.filename + '">' + element.filename + '</div>');
                         var $item_sep = $('<div style="width:12px;float:left"><span>：</span></div>');
                         var $item_link_div = $('<div class="item-link" style="float:left;width:618px;"></div>');
-                        var $item_first = $('<div class="item-first" style="overflow:hidden;text-overflow:ellipsis"><a href="'+element.downloadlink+'">'+element.downloadlink+'</a></div>');
+                        var $item_first = $('<div class="item-first" style="overflow:hidden;text-overflow:ellipsis"><a href="' + element.downloadlink + '">' + element.downloadlink + '</a></div>');
                         $item_link_div.append($item_first);
-                        $.each(params.alllist[index].links,function(n,item){
-                            if(element.downloadlink == item.url)
+                        $.each(params.alllist[index].links, function (n, item) {
+                            if (element.downloadlink == item.url)
                                 return;
-                            var $item = $('<div class="item-ex" style="display:none;overflow:hidden;text-overflow:ellipsis"><a href="'+item.url+'">'+item.url+'</a></div>');
+                            var $item = $('<div class="item-ex" style="display:none;overflow:hidden;text-overflow:ellipsis"><a href="' + item.url + '">' + item.url + '</a></div>');
                             $item_link_div.append($item);
                         });
                         var $item_ex = $('<div style="width:15px;float:left;cursor:pointer;text-align:center;font-size:16px"><span>+</span></div>');
                         $item_div.append($item_name).append($item_sep).append($item_link_div).append($item_ex);
-                        $item_ex.click(function(){
+                        $item_ex.click(function () {
                             var $parent = $(this).parent();
                             $parent.toggleClass('showall');
-                            if($parent.hasClass('showall')){
+                            if ($parent.hasClass('showall')) {
                                 $(this).text('-');
-                                $('div.item-link div.item-ex',$parent).show();
+                                $('div.item-link div.item-ex', $parent).show();
                             } else {
                                 $(this).text('+');
-                                $('div.item-link div.item-ex',$parent).hide();
+                                $('div.item-link div.item-ex', $parent).hide();
                             }
                         });
-                        $('div.dialog-body',dialog).append($item_div);
+                        $('div.dialog-body', dialog).append($item_div);
                     });
-                }else{
-                    $.each(params.list,function(index,element){
-                        var $div = $('<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="'+element.filename+'">'+element.filename+'</div><span>：</span><a href="'+element.downloadlink+'">'+element.downloadlink+'</a></div>');
-                        $('div.dialog-body',dialog).append($div);
+                } else {
+                    $.each(params.list, function (index, element) {
+                        var $div = $('<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="' + element.filename + '">' + element.filename + '</div><span>：</span><a href="' + element.downloadlink + '">' + element.downloadlink + '</a></div>');
+                        $('div.dialog-body', dialog).append($div);
                     });
                 }
             }
 
-            if(params.tip){
-                $('div.dialog-tip p',dialog).text(params.tip);
+            if (params.tip) {
+                $('div.dialog-tip p', dialog).text(params.tip);
             }
 
-            if(params.showcopy){
-                $('div.dialog-button',dialog).show();
-                $('div.dialog-button button#dialog-copy-button',dialog).show();
+            if (params.showcopy) {
+                $('div.dialog-button', dialog).show();
+                $('div.dialog-button button#dialog-copy-button', dialog).show();
             }
-            if(params.showedit){
-                $('div.dialog-button',dialog).show();
-                $('div.dialog-button button#dialog-edit-button',dialog).show();
+            if (params.showedit) {
+                $('div.dialog-button', dialog).show();
+                $('div.dialog-button button#dialog-edit-button', dialog).show();
                 var $dialog_textarea = $('<textarea name="dialog-textarea" style="display:none;resize:none;width:758px;height:300px;white-space:pre;word-wrap:normal;overflow-x:scroll"></textarea>');
                 var content = '';
-                if(showParams.type == 'batch'){
-                    $.each(linkList,function(index,element){
-                        if(element.downloadlink == 'error')
+                if (showParams.type == 'batch') {
+                    $.each(linkList, function (index, element) {
+                        if (element.downloadlink == 'error')
                             return;
-                        if(index == linkList.length-1)
+                        if (index == linkList.length - 1)
                             content = content + element.downloadlink;
                         else
-                            content =  content + element.downloadlink + '\n';
+                            content = content + element.downloadlink + '\n';
                     });
-                } else if(showParams.type == 'link'){
-                    $.each(linkList,function(index,element){
-                        if(element.url == 'error')
+                } else if (showParams.type == 'link') {
+                    $.each(linkList, function (index, element) {
+                        if (element.url == 'error')
                             return;
-                        if(index == linkList.length-1)
+                        if (index == linkList.length - 1)
                             content = content + element.url;
                         else
-                            content =  content + element.url + '\n';
+                            content = content + element.url + '\n';
                     });
                 }
                 $dialog_textarea.val(content);
-                $('div.dialog-body',dialog).append($dialog_textarea);
+                $('div.dialog-body', dialog).append($dialog_textarea);
             }
 
             shadow.show();
             dialog.show();
         }
 
-        this.close = function(){
+        this.close = function () {
             dialogControl();
         }
 
-        function dialogControl(){
-            $('div.dialog-body',dialog).children().remove();
-            $('div.dialog-header h3 span.dialog-title',dialog).text('');
-            $('div.dialog-tip p',dialog).text('');
-            $('div.dialog-button',dialog).hide();
-            $('div.dialog-radio input[type=radio][name=showmode][value=multi]',dialog).prop('checked',true);
-            $('div.dialog-radio',dialog).hide();
-            $('div.dialog-button button#dialog-copy-button',dialog).hide();
-            $('div.dialog-button button#dialog-edit-button',dialog).hide();
-            $('div.dialog-button button#dialog-exit-button',dialog).hide();
+        function dialogControl() {
+            $('div.dialog-body', dialog).children().remove();
+            $('div.dialog-header h3 span.dialog-title', dialog).text('');
+            $('div.dialog-tip p', dialog).text('');
+            $('div.dialog-button', dialog).hide();
+            $('div.dialog-radio input[type=radio][name=showmode][value=multi]', dialog).prop('checked', true);
+            $('div.dialog-radio', dialog).hide();
+            $('div.dialog-button button#dialog-copy-button', dialog).hide();
+            $('div.dialog-button button#dialog-edit-button', dialog).hide();
+            $('div.dialog-button button#dialog-exit-button', dialog).hide();
             dialog.hide();
             shadow.hide();
         }
@@ -1977,12 +2029,13 @@
         shadow = createShadow();
     }
 
-    function VCodeDialog(refreshVCode,confirmClick){
-        var dialog,shadow;
-        function createDialog(){
+    function VCodeDialog(refreshVCode, confirmClick) {
+        var dialog, shadow;
+
+        function createDialog() {
             var screenWidth = document.body.clientWidth;
-            var dialogLeft = screenWidth>520 ? (screenWidth-520)/2 : 0;
-            var $dialog_div = $('<div class="dialog" id="dialog-vcode" style="width:520px;top:0px;bottom:auto;left:'+dialogLeft+'px;right:auto;display:none;visibility:visible;z-index:52"></div>');
+            var dialogLeft = screenWidth > 520 ? (screenWidth - 520) / 2 : 0;
+            var $dialog_div = $('<div class="dialog" id="dialog-vcode" style="width:520px;top:0px;bottom:auto;left:' + dialogLeft + 'px;right:auto;display:none;visibility:visible;z-index:52"></div>');
             var $dialog_header = $('<div class="dialog-header"><h3><span class="dialog-header-title"><em class="select-text">提示</em></span></h3></div>');
             var $dialog_control = $('<div class="dialog-control"><span class="dialog-icon dialog-close icon icon-close"><span class="sicon">x</span></span></div>');
             var $dialog_body = $('<div class="dialog-body"></div>');
@@ -2011,55 +2064,57 @@
             $dialog_control.click(dialogControl);
             $dialog_img.click(refreshVCode);
             $dialog_refresh.click(refreshVCode);
-            $dialog_input.keypress(function(event){
-                if(event.which == 13)
+            $dialog_input.keypress(function (event) {
+                if (event.which == 13)
                     confirmClick();
             });
             $dialog_confirm_button.click(confirmClick);
             $dialog_cancel_button.click(dialogControl);
-            $dialog_input.click(function(){
+            $dialog_input.click(function () {
                 $('#dialog-err').text('');
             });
             return $dialog_div;
         }
-        this.open = function(vcode){
-            if(vcode)
-                $('#dialog-img').attr('src',vcode.img);
+
+        this.open = function (vcode) {
+            if (vcode)
+                $('#dialog-img').attr('src', vcode.img);
             dialog.show();
             shadow.show();
         }
-        this.close = function(){
+        this.close = function () {
             dialogControl();
         }
         dialog = createDialog();
         shadow = $('div.dialog-shadow');
-        function dialogControl(){
-            $('#dialog-img',dialog).attr('src','');
+
+        function dialogControl() {
+            $('#dialog-img', dialog).attr('src', '');
             $('#dialog-err').text('');
             dialog.hide();
             shadow.hide();
         }
     }
 
-    $.fn.dialogDrag = function(){
-        var mouseInitX,mouseInitY,dialogInitX,dialogInitY;
+    $.fn.dialogDrag = function () {
+        var mouseInitX, mouseInitY, dialogInitX, dialogInitY;
         var screenWidth = document.body.clientWidth;
         var $parent = this;
-        $('div.dialog-header',this).mousedown(function(event){
+        $('div.dialog-header', this).mousedown(function (event) {
             mouseInitX = parseInt(event.pageX);
             mouseInitY = parseInt(event.pageY);
-            dialogInitX = parseInt($parent.css('left').replace('px',''));
-            dialogInitY = parseInt($parent.css('top').replace('px',''));
-            $(this).mousemove(function(event){
+            dialogInitX = parseInt($parent.css('left').replace('px', ''));
+            dialogInitY = parseInt($parent.css('top').replace('px', ''));
+            $(this).mousemove(function (event) {
                 var tempX = dialogInitX + parseInt(event.pageX) - mouseInitX;
                 var tempY = dialogInitY + parseInt(event.pageY) - mouseInitY;
-                var width = parseInt($parent.css('width').replace('px',''));
-                tempX = tempX<0 ? 0 : tempX>screenWidth-width ? screenWidth-width : tempX;
-                tempY = tempY<0 ? 0 : tempY;
-                $parent.css('left',tempX+'px').css('top',tempY+'px');
+                var width = parseInt($parent.css('width').replace('px', ''));
+                tempX = tempX < 0 ? 0 : tempX > screenWidth - width ? screenWidth - width : tempX;
+                tempY = tempY < 0 ? 0 : tempY;
+                $parent.css('left', tempX + 'px').css('top', tempY + 'px');
             });
         });
-        $('div.dialog-header',this).mouseup(function(event){
+        $('div.dialog-header', this).mouseup(function (event) {
             $(this).unbind('mousemove');
         });
     }
