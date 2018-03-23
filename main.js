@@ -480,9 +480,9 @@
             $apibutton_batchhttplink_button.click(batchClick);
             $apibutton_batchhttpslink_button.click(batchClick);
 
-            var $outerlinkbutton = $('<span class="g-button-menu" style="display:block"></span>');
+            var $outerlinkbutton = $('<span class="g-button-menu" style="display:none"></span>');  //改为block显示外链下载
             var $outerlinkbutton_span = $('<span class="g-dropdown-button g-dropdown-button-second" menulevel="2"></span>');
-            var $outerlinkbutton_a = $('<a class="g-button" href="javascript:void(0);"><span class="g-button-right"><span class="text" style="width:auto">已失效</span></span></a>');
+            var $outerlinkbutton_a = $('<a class="g-button" href="javascript:void(0);"><span class="g-button-right"><span class="text" style="width:auto">外链下载</span></span></a>');
             var $outerlinkbutton_menu = $('<span class="menu" style="width:120px;left:79px"></span>');
             var $outerlinkbutton_download_button = $('<a id="download-outerlink" class="g-button-menu" href="javascript:void(0);">下载</a>');
             var $outerlinkbutton_link_button = $('<a id="link-outerlink" class="g-button-menu" href="javascript:void(0);">显示链接</a>');
