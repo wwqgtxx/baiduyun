@@ -256,10 +256,9 @@
 
         //文件选择框
         function registerCheckbox() {
-            if (list_grid_status == 'list') {
-                var $checkbox = $('span.' + wordMap['checkbox']);
-            } else if (list_grid_status == 'grid') {
-                var $checkbox = $('.' + wordMap['chekbox-grid']);
+            var $checkbox = $('span.' + wordMap['checkbox']);
+            if (list_grid_status == 'grid') {
+                $checkbox = $('.' + wordMap['chekbox-grid']);
             }
 
             //console.log($checkbox);
@@ -507,11 +506,8 @@
                 $dropdownbutton.toggleClass('button-open');
             });
 
-            //$('div.default-dom div.bar div.list-tools').append($dropdownbutton);
-            //$('div.irhW9pZ div.yqgR747 div.QDDOQB').append($dropdownbutton);
-            //$('div.'+wordMap['default-dom']+' div.'+wordMap['bar']+' div.'+wordMap['list-tools']).append($dropdownbutton);
-            -$('div.' + wordMap['default-dom'] + ' div.' + wordMap['bar'] + ' div.' + wordMap['list-tools']).prepend($dropdownbutton);
-            +$('div.' + wordMap['list-tools']).prepend($dropdownbutton)
+            $('div.' + wordMap['default-dom'] + ' div.' + wordMap['bar'] + ' div.' + wordMap['list-tools']).prepend($dropdownbutton);
+            $('div.' + wordMap['list-tools']).prepend($dropdownbutton)
         }
 
         // 我的网盘 - 下载
@@ -855,7 +851,7 @@
         //获取当前目录
         function getPath() {
             var hash = location.hash;
-            var regx = new RegExp("path=([^&]*)(&|$)",'i');
+            var regx = new RegExp("path=([^&]*)(&|$)", 'i');
             var result = hash.match(regx);
             //console.log(result);
             return decodeURIComponent(result[1]);
@@ -864,14 +860,14 @@
         //获取分类显示的类别，即地址栏中的type
         function getCategory() {
             var hash = location.hash;
-            var regx = new RegExp("path=([^&]*)(&|$)",'i');
+            var regx = new RegExp("path=([^&]*)(&|$)", 'i');
             var result = hash.match(regx);
             return decodeURIComponent(result[1]);
         }
 
         function getSearchKey() {
             var hash = location.hash;
-            var regx = new RegExp("key=([^&]*)(&|$)",'i');
+            var regx = new RegExp("key=([^&]*)(&|$)", 'i');
             var result = hash.match(regx);
             return decodeURIComponent(result[1]);
         }
@@ -1187,7 +1183,7 @@
         //获取当前目录
         function getPath() {
             var hash = location.hash;
-            var regx = new RegExp("path=([^&]*)(&|$)",'i');
+            var regx = new RegExp("path=([^&]*)(&|$)", 'i');
             var result = hash.match(regx);
             return decodeURIComponent(result[1]);
         }
