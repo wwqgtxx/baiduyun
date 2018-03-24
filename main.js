@@ -658,7 +658,34 @@
                         {url: httpslink, rank: 2}
                     ]
                 };
-                tip = '显示模拟百度网盘网页获取的链接，可以使用右键迅雷下载，复制到下载工具需要传递cookie，多文件打包下载的链接可以直接复制使用';
+                if(httplink2 != httplink){
+                    linkList["urls"].push({url: httplink2, rank: 3});
+                    linkList["urls"].push({url: httpslink2, rank: 4});
+                }
+                if(downloadType == 'dlink'){
+                    downloadType = 'batch';
+                    result = getDownloadLinkWithPanAPI(downloadType);
+                    if(result.errno === 0){
+                        slog(selectFileList);
+                        downloadLink = result.dlink;
+                        if(selectFileList.length === 1)
+                            downloadLink = downloadLink + '&zipname=' + encodeURIComponent(selectFileList[0].filename) + '.zip';
+                    }else if(result.errno == -1){
+                        alert('文件不存在或已被百度和谐，无法下载！');
+                        return;
+                    }else if(result.errno == 112){
+                        alert("页面过期，请刷新重试！");
+                        return;
+                    }else{
+                        alert("发生错误！");
+                        return;
+                    }
+                    httplink = downloadLink.replace(/^([A-Za-z]+):/,'http:');
+                    httpslink = downloadLink.replace(/^([A-Za-z]+):/,'https:');
+                    linkList["urls"].push({url:httplink,rank:5});
+                    linkList["urls"].push({url:httpslink,rank:6});
+                }
+                tip = 'd.pcs.baidu.com域名复制到下载工具需要传递cookie，yqall02.baidupcs.com域名以及多文件打包下载的链接可以直接复制使用';
                 dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
             } else {
                 if (selectFileList.length === 0) {
