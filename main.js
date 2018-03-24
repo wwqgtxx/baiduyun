@@ -535,6 +535,7 @@
                 } else if (selectFileList.length > 1) {
                     downloadType = 'batch';
                 }
+
                 fid_list = getFidList(selectFileList);
                 var result = getDownloadLinkWithPanAPI(downloadType);
                 if (result.errno === 0) {
