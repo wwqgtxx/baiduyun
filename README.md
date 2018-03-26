@@ -46,4 +46,4 @@ Tips: 被列入百度黑名单的用户, 退出账号后获取链接即可达到
   
   如果您觉得脚本对您有帮助，请往我的支付宝客户端，扫描二维码，捐赠 X元，^_^，谢谢！
   
-  ![支持我][https://syhyz1990.oss-cn-beijing.aliyuncs.com/a6x05537ltinxoigp3qvv90.png]
+  ![支持我](https://syhyz1990.oss-cn-beijing.aliyuncs.com/a6x05537ltinxoigp3qvv90.png)
