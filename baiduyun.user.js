@@ -5,7 +5,7 @@
 // @description       直接下载百度网盘和百度网盘分享的文件,直链下载超级加速
 // @author            syhyz1990 <syhyz1990@outlook.com>
 // @supportURL        https://github.com/syhyz1990/baiduyun
-// @contributionURL   https://qr.alipay.com/a6x05537ltinxoigp3qvv90
+// @contributionURL   https://syhyz1990.oss-cn-beijing.aliyuncs.com/a6x05537ltinxoigp3qvv90.png
 // @match             *://pan.baidu.com/disk/home*
 // @match             *://yun.baidu.com/disk/home*
 // @match             *://pan.baidu.com/s/*
