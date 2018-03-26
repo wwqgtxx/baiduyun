@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name              百度网盘直接下载助手 直链加速版
 // @namespace         https://github.com/syhyz1990/baiduyun
-// @version           1.2.1
+// @version           1.2.2
 // @description       直接下载百度网盘和百度网盘分享的文件,直链下载超级加速
 // @author            syhyz1990 <syhyz1990@outlook.com>
 // @supportURL        https://github.com/syhyz1990/baiduyun
