@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name              百度网盘直接下载助手 直链加速版
 // @namespace         https://github.com/syhyz1990/baiduyun
-// @version           1.2.2
+// @version           1.2.3
 // @description       直接下载百度网盘和百度网盘分享的文件,直链下载超级加速
 // @author            syhyz1990 <syhyz1990@outlook.com>
 // @supportURL        https://github.com/syhyz1990/baiduyun
@@ -639,9 +639,9 @@
                     return;
                 }
                 var httplink = downloadLink.replace(/^([A-Za-z]+):/, 'http:');
-                httplink = replaceDownloadLink(httplink);
+                //httplink = replaceDownloadLink(httplink);
                 var httpslink = downloadLink.replace(/^([A-Za-z]+):/, 'https:');
-                httpslink = replaceDownloadLink(httpslink);
+                //httpslink = replaceDownloadLink(httpslink);
                 var filename = '';
                 $.each(selectFileList, function (index, element) {
                     if (selectFileList.length == 1)
@@ -791,7 +791,7 @@
                     else if (downloadType == 'batch')
                         downloadLink = result.dlink;
                     downloadLink = downloadLink.replace(/^([A-Za-z]+):/, linkType);
-                    downloadLink = replaceDownloadLink(downloadLink);
+                    //downloadLink = replaceDownloadLink(downloadLink);
                 } else {
                     downloadLink = 'error';
                 }
@@ -1569,7 +1569,7 @@
                                 filename = filename + ',' + element.filename;
                         }
                     });
-                    link = replaceDownloadLink(link, true);
+                    //link = replaceDownloadLink(link, true);
                     var linkList = {
                         filename: filename,
                         urls: [
@@ -1634,7 +1634,7 @@
                             filename = filename + ',' + element.filename;
                     }
                 });
-                link = replaceDownloadLink(link, true);
+                //link = replaceDownloadLink(link, true);
                 var linkList = {
                     filename: filename,
                     urls: [
