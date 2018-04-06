@@ -2,7 +2,7 @@
 // @name              百度网盘直接下载助手 直链加速版
 // @namespace         https://github.com/syhyz1990/baiduyun
 // @version           1.2.3
-// @description       直接下载百度网盘和百度网盘分享的文件,直链下载超级加速
+// @description       通过迅雷,IDM直接下载百度网盘和百度网盘分享的文件,告别百度VIP,免装客户端,支持批量下载
 // @author            syhyz1990 <syhyz1990@outlook.com>
 // @supportURL        https://github.com/syhyz1990/baiduyun
 // @contributionURL   https://syhyz1990.oss-cn-beijing.aliyuncs.com/a6x05537ltinxoigp3qvv90.png
