@@ -28,6 +28,8 @@
 
 均推荐使用 IDM 进行下载 ([IDM 下载地址](http://internetdownloadmanager.com/download.html))
 
+![IDM](https://syhyz1990.oss-cn-beijing.aliyuncs.com/idm.gif)
+
 Tips: 被列入百度黑名单的用户, 退出账号后获取链接即可达到最大速度
   
 如果您觉得脚本对您有帮助，请往我的支付宝客户端，扫描二维码，捐赠 X元，^_^，谢谢！
