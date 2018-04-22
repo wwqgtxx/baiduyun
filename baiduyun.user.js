@@ -660,10 +660,6 @@
                         {url: httpslink, rank: 2}
                     ]
                 };
-                if(httplink2 != httplink){
-                    linkList["urls"].push({url: httplink2, rank: 3});
-                    linkList["urls"].push({url: httpslink2, rank: 4});
-                }
                 if(downloadType == 'dlink'){
                     downloadType = 'batch';
                     result = getDownloadLinkWithPanAPI(downloadType);
@@ -684,8 +680,8 @@
                     }
                     httplink = downloadLink.replace(/^([A-Za-z]+):/,'http:');
                     httpslink = downloadLink.replace(/^([A-Za-z]+):/,'https:');
-                    linkList["urls"].push({url:httplink,rank:5});
-                    linkList["urls"].push({url:httpslink,rank:6});
+                    linkList["urls"].push({url:httplink,rank:3});
+                    linkList["urls"].push({url:httpslink,rank:4});
                 }
                 tip = 'd.pcs.baidu.com域名复制到下载工具需要传递cookie，yqall02.baidupcs.com域名以及多文件打包下载的链接可以直接复制使用';
                 dialog.open({title: '下载链接', type: 'link', list: linkList, tip: tip});
