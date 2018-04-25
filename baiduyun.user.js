@@ -277,13 +277,15 @@
                     //if($parent.hasClass('item-active')){
                     //if($parent.hasClass('prWzXA')){
                     //console.log(fileList);
-                    if ($parent.hasClass(wordMap['item-active'])) {
-                        slog('取消选中文件：' + filename);
-                        for (var i = 0; i < selectFileList.length; i++) {
-                            if (selectFileList[i].filename == filename) {
-                                selectFileList.splice(i, 1);
-                            }
+                    var is_in = false;
+                    for (var i = 0; i < selectFileList.length; i++) {
+                        if (selectFileList[i].filename == filename) {
+                            selectFileList.splice(i, 1);
+                            is_in = true;
                         }
+                    }
+                    if (is_in) {
+                        slog('取消选中文件：' + filename);
                     } else {
                         slog('选中文件:' + filename);
                         //console.log(fileList);
@@ -1318,13 +1320,15 @@
                     } else if (list_grid_status == 'grid') {
                         filename = $('div.file-name a', $parent).attr('title');
                     }
-                    if ($parent.hasClass('item-active')) {
-                        slog('取消选中文件：' + filename);
-                        for (var i = 0; i < selectFileList.length; i++) {
-                            if (selectFileList[i].filename == filename) {
-                                selectFileList.splice(i, 1);
-                            }
+                    var is_in = false;
+                    for (var i = 0; i < selectFileList.length; i++) {
+                        if (selectFileList[i].filename == filename) {
+                            selectFileList.splice(i, 1);
+                            is_in = true;
                         }
+                    }
+                    if (is_in) {
+                        slog('取消选中文件：' + filename);
                     } else {
                         slog('选中文件：' + filename);
                         $.each(fileList, function (index, element) {
