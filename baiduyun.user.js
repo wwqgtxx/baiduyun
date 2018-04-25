@@ -85,6 +85,7 @@
         c2 = c2 ? c2 : '';
         c3 = c3 ? c3 : '';
         console.log('#' + log_count++ + '-BaiDuNetdiskHelper-log:', c1, c2, c3);
+        console.trace();
     }
 
     $(function () {
@@ -804,17 +805,21 @@
             var list = [];
             $.each(selectFileList, function (index, element) {
                 var downloadType, downloadLink, result;
-                if (element.isdir == 0)
-                    downloadType = 'dlink';
-                else
+                // if (element.isdir == 0)
+                //     downloadType = 'dlink';
+                // else
                     downloadType = 'batch';
                 fid_list = getFidList([element]);
                 result = getDownloadLinkWithPanAPI(downloadType);
                 if (result.errno == 0) {
-                    if (downloadType == 'dlink')
+                    if (downloadType == 'dlink'){
                         downloadLink = result.dlink[0].dlink;
-                    else if (downloadType == 'batch')
+                    }
+
+                    else if (downloadType == 'batch'){
                         downloadLink = result.dlink;
+                        downloadLink = downloadLink + '&zipname=' + encodeURIComponent(element.filename) + '.zip';
+                    }
                     downloadLink = downloadLink.replace(/^([A-Za-z]+):/, linkType);
                     //downloadLink = replaceDownloadLink(downloadLink);
                 } else {
@@ -1979,7 +1984,8 @@
                     });
                 } else {
                     $.each(params.list, function (index, element) {
-                        var $div = $('<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="' + element.filename + '">' + element.filename + '</div><span>：</span><a href="' + element.downloadlink + '">' + element.downloadlink + '</a></div>');
+                        //<div style="width:100px;float:left;overflow:hidden;text-overflow:ellipsis" title="' + element.filename + '">' + element.filename + '</div><span>：</span>
+                        var $div = $('<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="' + element.downloadlink + '">' + element.downloadlink + '</a></div>');
                         $('div.dialog-body', dialog).append($div);
                     });
                 }
